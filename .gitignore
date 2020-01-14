@@ -12,6 +12,10 @@
 *.cb2
 .*.lb
 
+## Slight hack to exlude main pdf but not images
+*.pdf
+!*/*.pdf
+
 ## Intermediate documents:
 *.dvi
 *.xdv

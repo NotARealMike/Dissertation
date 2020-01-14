@@ -1,0 +1,119 @@
+% Template for a Computer Science Tripos Part II project dissertation
+\documentclass[12pt,a4paper,twoside,openright]{report}
+\usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
+\usepackage[margin=25mm]{geometry}  % adjusts page layout
+\usepackage{graphicx}  % allows inclusion of PDF, PNG and JPG images
+\usepackage{verbatim}
+\usepackage{docmute}   % only needed to allow inclusion of proposal.tex
+
+\raggedbottom                           % try to avoid widows and orphans
+\sloppy
+\clubpenalty1000%
+\widowpenalty1000%
+
+\renewcommand{\baselinestretch}{1.1}    % adjust line spacing to make
+                                        % more readable
+
+\begin{document}
+
+\bibliographystyle{plain}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\pagestyle{empty}
+
+\rightline{\LARGE \textbf{Martin Richards}}
+
+\vspace*{60mm}
+\begin{center}
+  \Huge
+  \textbf{How to write a dissertation in \LaTeX} \\[5mm]
+  Computer Science Tripos -- Part II \\[5mm]
+  St John's College \\[5mm]
+  \today % today's date
+\end{center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Proforma, table of contents and list of figures
+
+\pagestyle{plain}
+
+\chapter*{Proforma}
+
+{\large
+  \begin{tabular}{ll}
+    Name:               & \bf Martin Richards                       \\
+    College:            & \bf St John's College                     \\
+    Project Title:      & \bf How to write a dissertation in \LaTeX \\
+    Examination:        & \bf Computer Science Tripos -- Part II, July 2001  \\
+    Word Count:         & \bf 1587\footnotemark[1]
+                          (well less than the 12000 limit)  \\
+    Project Originator: & Dr M.~Richards                    \\
+    Supervisor:         & Dr Markus Kuhn                    \\ 
+  \end{tabular}
+} \footnotetext[1]{This word count was computed by \texttt{detex
+    diss.tex | tr -cd '0-9A-Za-z $\tt\backslash$n' | wc -w} }
+\stepcounter{footnote}
+
+
+\section*{Original Aims of the Project}
+
+\section*{Work Completed}
+
+All that has been completed appears in this dissertation.
+
+\section*{Special Difficulties}
+ 
+\newpage
+
+\section*{Declaration}
+
+I, [Name] of [College], being a candidate for Part II of the Computer
+Science Tripos [or the Diploma in Computer Science], hereby declare
+that this dissertation and the work described in it are my own work,
+unaided except as may be specified below, and that the dissertation
+does not contain material that has already been used to any
+substantial extent for a comparable purpose.
+
+\bigskip \leftline{Signed [signature]}
+
+\medskip \leftline{Date [date]}
+
+\tableofcontents
+
+\listoffigures
+
+\newpage
+
+\section*{Acknowledgements}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% now for the chapters
+
+\pagestyle{headings}
+
+\chapter{Introduction}
+
+\chapter{Preparation}
+
+\chapter{Implementation}
+
+\chapter{Evaluation}
+
+\chapter{Conclusion}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% the bibliography
+\addcontentsline{toc}{chapter}{Bibliography} \bibliography{biblio}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% the appendices
+\appendix
+
+\chapter{Project Proposal}
+
+\end{document}
