@@ -1,62 +1,160 @@
-% Template for a Computer Science Tripos Part II project dissertation
-\documentclass[12pt,a4paper,twoside,openright]{report}
-\usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
-\usepackage[margin=25mm]{geometry}  % adjusts page layout
-\usepackage{graphicx}  % allows inclusion of PDF, PNG and JPG images
-\usepackage{verbatim}
-\usepackage{docmute}   % only needed to allow inclusion of proposal.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% CL provided template
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\raggedbottom                           % try to avoid widows and orphans
+\documentclass[12pt,a4paper,twoside,openright]{report}
+
+% turns references into hyperlinks
+\usepackage[pdfborder={0 0 0}]{hyperref}
+
+% adjusts page layout
+\usepackage[margin=25mm]{geometry}
+
+% allows inclusion of PDF, PNG and JPG images
+\usepackage{graphicx}
+\graphicspath{ {figs/} }
+
+\usepackage{verbatim}
+
+% try to avoid widows and orphans
+\raggedbottom
 \sloppy
 \clubpenalty1000%
 \widowpenalty1000%
 
-\renewcommand{\baselinestretch}{1.1}    % adjust line spacing to make
-                                        % more readable
+% adjust line spacing to make more readable
+\renewcommand{\baselinestretch}{1.1}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Maths
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{amsmath}        % American Mathematical Society
+\usepackage{amssymb}        % Maths symbols
+\usepackage{amsthm}         % Theorems
+\usepackage{mathpartir}    % Proofs and inference rules
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Floats
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{float}
+\usepackage[labelfont=bf,margin=10pt]{caption}
+\usepackage{subcaption}
+\newcommand{\mycaption}[2]{\caption[#1]{#1 #2}}
+
+\floatstyle{plain}
+\restylefloat{figure}
+\restylefloat{table}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+% Figures
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{tikz}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Tables
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{array}
+% control width and vertically align text in table cells
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Listings
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{fancyvrb}
+
+\floatstyle{boxed}
+%\floatstyle{ruled}
+\newfloat{Listing}{tbp}{lol}[chapter]
+
+\DefineVerbatimEnvironment{JavaCode}{Verbatim}
+{fontfamily=courier,baselinestretch=1,gobble=4}
+
+\DefineVerbatimEnvironment{GoCode}{Verbatim}
+{fontfamily=courier,baselinestretch=1,gobble=4}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Semantic and convenience macros
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\TOBEDONE}{{\LARGE To be done...}}
+
+\newcommand{\javaLiteral}[1]{\texttt{#1}}
+\newcommand{\javaCode}[1]{\texttt{#1}}
+\newcommand{\javaClass}[1]{\texttt{#1}}
+\newcommand{\javaSlot}[1]{\texttt{#1}}
+\newcommand{\javaVariable}[1]{\texttt{#1}}
+\newcommand{\javaKeyword}[1]{\texttt{#1}}
+\newcommand{\javaMethod}[1]{\texttt{#1}}
+\newcommand{\javaException}[1]{\texttt{#1}}
+\newcommand{\javaAnnotation}[1]{\texttt{#1}}
+
+\newcommand{\goCode}[1]{\texttt{#1}}
+\newcommand{\goType}[1]{\texttt{#1}}
+\newcommand{\goVariable}[1]{\texttt{#1}}
+\newcommand{\goKeyword}[1]{\texttt{#1}}
+\newcommand{\goMethod}[1]{\texttt{#1}}
+
+\newcommand{\keyTerm}[1]{\textbf{#1}}
+
+\newcommand{\codeemph}[1]{\textbf{#1}}
+
+% Info about dissertation
+\newcommand{\disstitle}{Software Transactional Memory implementation
+  and benchmarking in Go}
+\newcommand{\college}{Churchill College}
+\newcommand{\studentname}{Mike Cachopo}
+\newcommand{\studentemail}{rmc82@cam.ac.uk}
+\newcommand{\wordcount}{0000}
+\newcommand{\originator}{Mike Cachopo}
+\newcommand{\supervisor}{Tim Harris}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Start of document
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
 
 \bibliographystyle{plain}
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
 \pagestyle{empty}
 
-\rightline{\LARGE \textbf{Martin Richards}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Cover page
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\rightline{\LARGE \textbf{\studentname}}
 
 \vspace*{60mm}
 \begin{center}
   \Huge
-  \textbf{How to write a dissertation in \LaTeX} \\[5mm]
+  \textbf{\disstitle} \\[5mm]
   Computer Science Tripos -- Part II \\[5mm]
-  St John's College \\[5mm]
+  \college \\[5mm]
   \today % today's date
 \end{center}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Proforma, table of contents and list of figures
 
 \pagestyle{plain}
 
 \chapter*{Proforma}
 
 {\large
-  \begin{tabular}{ll}
-    Name:               & \bf Martin Richards                       \\
-    College:            & \bf St John's College                     \\
-    Project Title:      & \bf How to write a dissertation in \LaTeX \\
-    Examination:        & \bf Computer Science Tripos -- Part II, July 2001  \\
-    Word Count:         & \bf 1587\footnotemark[1]
-                          (well less than the 12000 limit)  \\
-    Project Originator: & Dr M.~Richards                    \\
-    Supervisor:         & Dr Markus Kuhn                    \\ 
+  \begin{tabular}{L{0.3\linewidth} L{0.7\linewidth}}
+    Name:               & \bf \studentname                      \\
+    College:            & \bf \college                     \\
+    Project Title:      & \bf \disstitle \\
+    Examination:        & \bf Computer Science Tripos -- Part II, July 2020  \\
+    Word Count:         & \bf \wordcount  \\
+    Project Originator: & \originator                    \\
+    Supervisor:         & \supervisor                    \\ 
   \end{tabular}
-} \footnotetext[1]{This word count was computed by \texttt{detex
-    diss.tex | tr -cd '0-9A-Za-z $\tt\backslash$n' | wc -w} }
-\stepcounter{footnote}
-
+}
 
 \section*{Original Aims of the Project}
 
@@ -70,48 +168,113 @@ All that has been completed appears in this dissertation.
 
 \section*{Declaration}
 
-I, [Name] of [College], being a candidate for Part II of the Computer
+I, \studentname\ of \college, being a candidate for Part II of the Computer
 Science Tripos [or the Diploma in Computer Science], hereby declare
 that this dissertation and the work described in it are my own work,
 unaided except as may be specified below, and that the dissertation
 does not contain material that has already been used to any
 substantial extent for a comparable purpose.
 
-\bigskip \leftline{Signed [signature]}
+\bigskip \leftline{Signed}
 
-\medskip \leftline{Date [date]}
+\medskip \leftline{Date}
 
 \tableofcontents
 
-\listoffigures
+\listoffigures{}
+
+\listoftables{}
+
+\listof{Listing}{List of Listings}
 
 \newpage
 
 \section*{Acknowledgements}
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% now for the chapters
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #Content
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \pagestyle{headings}
 
 \chapter{Introduction}
 
+\begin{figure}[h]
+  \centering
+  \includegraphics{cuarms.pdf}
+  \mycaption{Test image.}{Kindly provided with the CL template.}
+\end{figure}
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{| c | c |}
+    \hline
+    Float type & Working? \\
+    \hline
+    Figure & Check \\
+    Table & Check \\
+    Listing & Check \\
+    \hline
+  \end{tabular}
+  \mycaption{Test table.}{Shows whether the different types of floats
+    used are typeset as expected.}
+\end{table}
+
+\begin{Listing}
+  \begin{JavaCode}
+    class Account {
+      long balance;
+      
+      Account(long balance) {
+        setBalance(balance);
+      }
+    }
+  \end{JavaCode}
+  \mycaption{A non-thread-safe class \javaClass{Account} in Java with
+    the basic \javaMethod{getBalance}, \javaMethod{deposit}, and
+    \javaMethod{withdraw} operations.}{Some extra stuff here.}
+  \label{lst:account}
+\end{Listing}
+
+\begin{Listing}
+  \begin{GoCode}
+    type activeTxRecord struct {
+      txNumber uint64
+      bodiesToClean unsafe.Pointer
+      running uint64
+      next *activeTxRecord
+    }
+  \end{GoCode}
+  \mycaption{Example Go code.}{The \goType{activeTxRecord} type.}
+  \label{lst:account}
+\end{Listing}
+
 \chapter{Preparation}
+
+\TOBEDONE
 
 \chapter{Implementation}
 
+\TOBEDONE
+
 \chapter{Evaluation}
+
+\TOBEDONE
 
 \chapter{Conclusion}
 
+\TOBEDONE
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% the bibliography
+% Bibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \addcontentsline{toc}{chapter}{Bibliography} \bibliography{biblio}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% the appendices
+% Appendices
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \appendix
 
 \chapter{Project Proposal}
