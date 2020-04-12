@@ -11,6 +11,7 @@
 *.cb
 *.cb2
 .*.lb
+*.rel
 
 ## Slight hack to exlude main pdf but not images
 *.pdf

@@ -25,6 +25,9 @@
 % adjust line spacing to make more readable
 \renewcommand{\baselinestretch}{1.1}
 
+% add colour to TODOs
+\usepackage{xcolor}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Maths
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -84,6 +87,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newcommand{\TOBEDONE}{{\LARGE To be done...}}
+\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
 
 \newcommand{\javaLiteral}[1]{\texttt{#1}}
 \newcommand{\javaCode}[1]{\texttt{#1}}
@@ -105,14 +109,19 @@
 
 \newcommand{\codeemph}[1]{\textbf{#1}}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Info about dissertation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \newcommand{\disstitle}{Software Transactional Memory implementation
   and benchmarking in Go}
 \newcommand{\college}{Churchill College}
-\newcommand{\studentname}{Mike Cachopo}
+\newcommand{\studentname}{Rui Cachopo}
+\newcommand{\candidatenumber}{2239G}
 \newcommand{\studentemail}{rmc82@cam.ac.uk}
 \newcommand{\wordcount}{0000}
-\newcommand{\originator}{Mike Cachopo}
+\newcommand{\loc}{0000}
+\newcommand{\originator}{Rui Cachopo}
 \newcommand{\supervisor}{Tim Harris}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -121,7 +130,7 @@
 
 \begin{document}
 
-\bibliographystyle{plain}
+\bibliographystyle{apalike}
 
 \pagestyle{empty}
 
@@ -137,22 +146,40 @@
   \textbf{\disstitle} \\[5mm]
   Computer Science Tripos -- Part II \\[5mm]
   \college \\[5mm]
-  \today % today's date
+  \today
 \end{center}
 
-\pagestyle{plain}
+\newpage
+
+\section*{Declaration}
+
+I, \studentname\ of \college, being a candidate for Part II of the
+Computer Science Tripos, hereby declare that this dissertation and the
+work described in it are my own work, unaided except as may be
+specified below, and that the dissertation does not contain material
+that has already been used to any substantial extent for a comparable
+purpose.
+
+I, \studentname\ of \college, am content for my dissertation to be
+made available to the students and staff of the University.
+
+\bigskip \leftline{Signed: }
+
+\medskip \leftline{Date: \today}
 
 \chapter*{Proforma}
 
+\thispagestyle{empty}
+
 {\large
   \begin{tabular}{L{0.3\linewidth} L{0.7\linewidth}}
-    Name:               & \bf \studentname                      \\
-    College:            & \bf \college                     \\
+    Candidate number: & \bf \candidatenumber                      \\
     Project Title:      & \bf \disstitle \\
     Examination:        & \bf Computer Science Tripos -- Part II, July 2020  \\
     Word Count:         & \bf \wordcount  \\
-    Project Originator: & \originator                    \\
-    Supervisor:         & \supervisor                    \\ 
+    Lines of code : & \bf \loc \\
+    Project Originator: & \originator \\
+    Supervisor: & \supervisor \\
   \end{tabular}
 }
 
@@ -164,22 +191,9 @@ All that has been completed appears in this dissertation.
 
 \section*{Special Difficulties}
  
-\newpage
-
-\section*{Declaration}
-
-I, \studentname\ of \college, being a candidate for Part II of the Computer
-Science Tripos [or the Diploma in Computer Science], hereby declare
-that this dissertation and the work described in it are my own work,
-unaided except as may be specified below, and that the dissertation
-does not contain material that has already been used to any
-substantial extent for a comparable purpose.
-
-\bigskip \leftline{Signed}
-
-\medskip \leftline{Date}
-
 \tableofcontents
+
+\pagestyle{plain} \pagenumbering{roman}
 
 \listoffigures{}
 
@@ -200,10 +214,252 @@ substantial extent for a comparable purpose.
 
 \chapter{Introduction}
 
+\pagenumbering{arabic}
+
+This dissertation describes the implementation and benchmarking of a
+Software Transactional Memory (STM) in Go, a programming language that
+emerged just as research on STMs dwindled. In this chapter I aim to
+give a brief historical background of STMs and explain the choices I
+made when proposing the project. In particular, I explain the choice
+of STM algorithm, programming language and benchmark to use.
+
+\section{Motivation and previous work}
+\label{sec:motivation}
+
+To have some context on the motivations behind STMs, it makes most
+sense to first remember the historical trends in processor
+design. From there, we can see how modern hardware limitations caused
+a revolution in software and the problems that this caused to
+programmers. Finally, we can see how STM tackles these problems.
+
+\subsection{The problem}
+\label{sec:problem}
+
+Starting in the later half of the last century, and especially in the
+period of 1986--2003, single-core processor performance grew
+exponentially at such a rate that hardware became obsolete within one
+or two years. This was mostly thanks to two ``laws'' of processor
+design: Moore's law \cite{MooreLaw} and Dennard scaling
+\cite{DennardScaling}. Moore's law is the observation that, due to the
+production of smaller transistors, the number of transistors in a
+processor doubles every two years\footnotemark. Dennard scaling states
+that as transistors get smaller and consume less power, their power
+density stays constant, so the power consumption of the whole
+processor remains constant.
+
+\footnotetext{The prediction in the 1965 paper was a doubling in
+  transistor count every year, but this was revised in 1975 to a
+  doubling every two years.}
+
+The combination of these laws impacts processor performance in three
+main ways:
+
+\begin{itemize}
+\item Smaller transistors can switch faster, meaning that the clock
+  frequency of the processor can be increased.
+  
+\item The higher transistor budget allows for more complex hardware
+  design. One way this was exploited was the use of pipelining, which
+  reduces the critical path inside processor and allows the clock
+  frequency of the processor to increase.
+  
+\item More complex hardware design was also used to build
+  out-of-order, superscalar processors. These processors could exploit
+  Instruction Level Parallelism (ILP) \cite[Chapter~3]{CompArchBook}
+  latent in most programs.
+\end{itemize}
+
+This processor performance free lunch \cite{FreeLunchIsOver} ended in
+the early 2000's, when Dennard scaling ceased to hold and the
+low-hanging fruit of processor design had been harvested:
+
+\begin{itemize}
+\item In post-Dennard scaling, power consumption becomes a limiting
+  factor in the complexity of a single core and on the clock frequency
+  of the processor.
+  
+\item The performance penalties caused by interruptions, such as cache
+  misses and mispredicted branches, increases with the length of the
+  processor pipeline. This means deeper pipelines yield diminishing
+  returns.
+  
+\item The amount of ILP latent in most programs is limited. This means
+  that increasingly complex superscalar hardware will also yield
+  diminishing returns.
+\end{itemize}
+
+As the limits of single-core performance and latent ILP were reached,
+processor designers shifted their focus to multicore processors, which
+are capable of exploiting Thread Level Parallelism (TLP)
+\cite[Chapter~5]{CompArchBook}. As opposed to ILP, which is can be
+automatically exploited by the processor in most applications, TLP is
+much harder to automatically exploit. This means that the burden is
+now on programmers to write concurrent applications if they want to
+reap the benefits of increasing processor performance. Enter the
+software revolution towards concurrent programming.
+
+\subsection{Possible solutions}
+\label{sec:possible-solutions}
+
+The model most commonly used in concurrent programs consists of
+multiple threads, which communicate through access to shared
+memory. Low level primitives such as locks are used to provide
+condition synchronisation and mutual exclusion when accessing shared
+resources. This model is sufficient for simple programs, but it does
+not scale to large applications. Problems such as deadlock and
+priority inversion are hard to detect and debug in large programs. The
+lack of a semantic link between a mutex lock and the resource it
+protects leads to what Herlihy and Shavit call ``synchronisation by
+convention'' \cite[Chapter 18]{ArtMultiprocessorProgramming}.
+
+\begin{Listing}[hbtp]
+  \begin{JavaCode}
+    /* * * When a locked buffer is visible to the I/O layer BH_Launder
+    * is set. This means before unlocking we must clear * BH_Launder,
+    mb() on alpha and then clear BH_Lock, * so no reader can see
+    BH_Launder set on an unlocked buffer * and then risk to deadlock.
+    */
+  \end{JavaCode}
+  \mycaption{Synchronisation by convention.}{This Linux kernel comment
+    demonstrates how real-world concurrent systems rapidly become
+    complex.}
+  \label{lst:syncConv}
+\end{Listing}
+
+Several approaches have been suggested as solutions to the problems
+present when using locks and shared memory. The most basic of these is
+the use of slightly higher level primitives, such as monitors and
+condition variables. Java is a good example of this: the JVM
+associates one monitor and one condition variable with each object. A
+\javaKeyword{synchronized} code block runs inside a monitor, which can
+be used to provide mutual exclusion. The condition variables can be
+used for condition synchronisation using the \javaMethod{wait},
+\javaMethod{notify} and \javaMethod{notifyAll} methods.
+
+Moving away from threads and shared memory, other concurrency models
+have been created. The most widespread involve message passing between
+strongly isolated processes --- so called because, unlike threads,
+they do not share memory. Hoare's Communicating Sequential Processes
+\cite{CSP} and Milner's Calculus of Communicating Systems \cite{CCS}
+are two formal models that use this idea. These models are mostly
+employed by functional programming languages such as Erlang, which
+allow no shared memory and in which all data is immutable. Concurrent
+programs in these languages can be simpler to write and debug, but
+often do not perform as well as programs written in more
+``traditional'' languages such as Java and C\texttt{++}.
+
+Yet another approach, and the focus of this dissertation, is
+Transactional Memory (TM) \cite{TMBook}. When using transactional
+memory, a programmer organises their code into transactions, similar
+to the transactions in the transactional model of databases. It is
+then up to the underlying TM implementation to provide atomicity and
+isolation of the transactions executed. That is, the memory operations
+of each transaction executed appear to all occur atomically, and no
+transaction can see the results of a partial execution of any other
+transaction.
+
+Transactional memories provide a very simple interface to programmers:
+to write a correct concurrent program, place all parallel code that
+accesses shared data inside transactions, and let the underlying TM
+ensure the program is correctly synchronised. Transactional memories
+also provide composability, meaning it is simple to compose existing
+transactions to achieve more complex behaviour. As an example,
+consider that we want to dequeue an element from a concurrent queue
+$Q_1$ and enqueue it in concurrent queue $Q_2$, but without any other
+thread observing that the element is in neither or both queues at the
+same time. Attempting to solve this problem with locks would be fairly
+complex, involving either the inclusion of additional locks or the
+exposition of internal locking logic of the concurrent queues. In a TM
+model, however, the solution is trivial. This is discussed in more
+depth in Section \todo{include section reference}.
+
+Transactional memories can be implemented in hardware or
+software. Hardware Transactional Memories (HTM) \todo{citation} are
+usually implemented on top of the cache coherence protocol of a
+processor, and are offered as an ISA extension. Because they
+operate at such a low level, HTMs are often very efficient, but the
+size of transactions is limited by the size of cache available and the
+implementation cost is extremely high. Software Transactional Memories
+(STM) \cite{STM} are much more flexible, but implementing them
+efficiently can be a challenge. Efficiency concerns with regards to
+STMs are so great that they have been called a ``research toy''
+\cite{toy}.
+
+\section{The algorithm and its use cases}
+\label{sec:algorithm-its-use}
+
+Based on an existing (and used) STM: the JVSTM.  The algorithms used
+are essentially the same.  Versioned boxes store past values, so
+read-only transactions always validate.  Lazy conflict detection, lazy
+updates.
+
+\cite{carvalho2008versioned}
+
+The first part of this project concerns the design and implementation
+of an STM based on versioned boxes \cite{cachopo2006vbb}, and is more
+generally similar to the Java Versioned Software Transactional Memory
+\cite{www:jvstm}. Because this STM will be implemented in Go I have
+chosen to name it GVSTM.
+
+\section{Evaluation and benchmarking}
+\label{sec:eval-benchm}
+
+Need for a realistic benchmark, not a toy one.
+
+STMBench7 models a CAD application.45 operations. Widely accepted as a
+stress test of STMs.
+
+No Go implementation.  Proposal is to implement a subset.  Largest
+part of the project in terms of loc. Top level stuff is handled by go
+test.
+
+\section{Golang}
+\label{sec:golang}
+
+Developed in Google from 2007, released in 2012.  Designed to exploit
+multicore machines.  Lots of cool projects with server applications:
+Docker, k8s, etcd, ELK stack, Prometheus/Thanos.
+
+No thread locals, so pass context around explicitly. No generics.
+
+\chapter{Preparation}
+
+\section{Go memory model and constraints}
+\label{sec:go-memory-model}
+
+\section{GVSTM}
+\label{sec:prep:gvstm}
+
+{ \em Work completed before code written:
+
+  Explain prototype
+
+  Define the API, relate to CMT and the desire for a standardised API,
+  such as
+
+  Understand the GC }
+
+The preparation for this project is unusual in that a lot of research
+was done prior to the start of the project. In fact, I built a working
+prototype of the GVSTM and used it as a demonstration before proposing
+this project to my supervisor.
+
+\section{STMBench7}
+\label{sec:prep:stmbench7}
+
+
+\TOBEDONE
+
+\chapter{Implementation}
+
+\TOBEDONE
+
+The following is included in this draft to showcase the current
+formatting of floats.
+
 \begin{figure}[h]
-  \centering
-  \includegraphics{cuarms.pdf}
-  \mycaption{Test image.}{Kindly provided with the CL template.}
+  \centering \includegraphics{cuarms.pdf} \mycaption{Test
+    image.}{Kindly provided with the CL template.}
 \end{figure}
 
 \begin{table}[h]
@@ -223,13 +479,9 @@ substantial extent for a comparable purpose.
 
 \begin{Listing}
   \begin{JavaCode}
-    class Account {
-      long balance;
+    class Account { long balance;
       
-      Account(long balance) {
-        setBalance(balance);
-      }
-    }
+      Account(long balance) { setBalance(balance); } }
   \end{JavaCode}
   \mycaption{A non-thread-safe class \javaClass{Account} in Java with
     the basic \javaMethod{getBalance}, \javaMethod{deposit}, and
@@ -239,24 +491,12 @@ substantial extent for a comparable purpose.
 
 \begin{Listing}
   \begin{GoCode}
-    type activeTxRecord struct {
-      txNumber uint64
-      bodiesToClean unsafe.Pointer
-      running uint64
-      next *activeTxRecord
-    }
+    type activeTxRecord struct { txNumber uint64 bodiesToClean
+      unsafe.Pointer running uint64 next *activeTxRecord }
   \end{GoCode}
   \mycaption{Example Go code.}{The \goType{activeTxRecord} type.}
   \label{lst:account}
 \end{Listing}
-
-\chapter{Preparation}
-
-\TOBEDONE
-
-\chapter{Implementation}
-
-\TOBEDONE
 
 \chapter{Evaluation}
 
