@@ -2,7 +2,7 @@
 % CL provided template
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\documentclass[12pt,a4paper,twoside,openright]{report}
+\documentclass[12pt,a4paper,oneside,openright]{report}
 
 % turns references into hyperlinks
 \usepackage[pdfborder={0 0 0}]{hyperref}
@@ -444,7 +444,7 @@ Java, I have decided to name it Go Versioned Software Transactional
 Memory (GVSTM).
 
 \section{Golang}
-\label{sec:golang}
+\label{sec:intro:golang}
 
 Go \cite{Go}, sometimes referred to as Golang, is a language whose
 development started in 2007 in Google, and which was released in
@@ -471,31 +471,74 @@ software engineers to build server applications using STM.
 
 \chapter{Preparation}
 
-\section{Go memory model and constraints}
-\label{sec:go-memory-model}
+I will begin this chapter by giving a brief overview of some of the
+characteristics of Go. I will then use this information to explain
+some of the design decisions made in this project. From there, I will
+outline the main items of work necessary for the success of the
+project. I will conclude by stating my starting point in terms of
+knowledge and code written, and briefly describe the software
+engineering approach used.
 
-\section{GVSTM}
-\label{sec:prep:gvstm}
+\section{Go characteristics}
+\label{sec:go-characteristics}
 
-{ \em Work completed before code written:
+Left to discuss:
 
-  Explain prototype
+\begin{itemize}
+\item No generic programming, but polymorphism through interfaces,
+  duck typing.
+\item No thread locals.
+\item Not very clear memory model.
+\end{itemize}
 
-  Define the API, relate to CMT and the desire for a standardised API,
-  such as
+\section{Design decisions}
+\label{sec:design-decisions}
 
-  Understand the GC }
+Left to discuss:
 
-The preparation for this project is unusual in that a lot of research
-was done prior to the start of the project. In fact, I built a working
-prototype of the GVSTM and used it as a demonstration before proposing
-this project to my supervisor.
+\begin{itemize}
+\item Untyped arguments and return types, require explicit casting.
+\item Transaction objects passed as arguments.
+\end{itemize}
+
+\section{Requirements analysis}
+\label{sec:requ-analys}
+
+Left to discuss:
+
+\begin{itemize}
+\item Read and write variables, leave more complex stuff for later.
+\item Garbage collection.
+\item Composability.
+\item STMBench7 gives sensible output.
+\end{itemize}
+
+\section{Starting point}
+\label{sec:starting-point}
+
+Left to discuss:
+
+\begin{itemize}
+\item Experience in Go from internship at Improbable.
+\item Some knowledge about VBoxes.
+\item Prototype built for project proposal.
+\item Access to JVSTM and STMBench7 codebases.
+\end{itemize}
+
+\section{Engineering methodology}
+\label{sec:engin-meth}
+
+Left to discuss:
+
+\begin{itemize}
+\item Git, Github.
+\item Backups.
+\item Why not TDD?
+\end{itemize}
 
 \section{STMBench7}
 \label{sec:prep:stmbench7}
 
-
-\TOBEDONE
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Implementation
@@ -503,51 +546,51 @@ this project to my supervisor.
 
 \chapter{Implementation}
 
-\TOBEDONE
+In this chapter I will describe the implementation of both the GVSTM
+and STMBench7, as well as the data structures and algorithms
+involved. At the end of the chapter I include an overview of the
+repository, for the interested reader to use as reference.
 
-The following is included in this draft to showcase the current
-formatting of floats.
+\section{GVSTM}
+\label{sec:impl:gvstm}
 
-\begin{figure}[h]
-  \centering \includegraphics{cuarms.pdf} \mycaption{Test
-    image.}{Kindly provided with the CL template.}
-\end{figure}
+\section{STMBench7}
+\label{sec:impl:stmbench7}
 
-\begin{table}[h]
-  \centering
-  \begin{tabular}{| c | c |}
-    \hline
-    Float type & Working? \\
-    \hline
-    Figure & Check \\
-    Table & Check \\
-    Listing & Check \\
-    \hline
-  \end{tabular}
-  \mycaption{Test table.}{Shows whether the different types of floats
-    used are typeset as expected.}
-\end{table}
+Left to discuss:
 
-\begin{Listing}
-  \begin{JavaCode}
-    class Account { long balance;
-      
-      Account(long balance) { setBalance(balance); } }
-  \end{JavaCode}
-  \mycaption{A non-thread-safe class \javaClass{Account} in Java with
-    the basic \javaMethod{getBalance}, \javaMethod{deposit}, and
-    \javaMethod{withdraw} operations.}{Some extra stuff here.}
-  \label{lst:account}
-\end{Listing}
+\begin{itemize}
+\item Steps taken to facilitate collection of results.
+\item The overall design of the benchmark.
+\item The levels at which interfaces are drawn.
+\item Adaptations to be made.
+\end{itemize}
 
-\begin{Listing}
-  \begin{GoCode}
-    type activeTxRecord struct { txNumber uint64 bodiesToClean
-      unsafe.Pointer running uint64 next *activeTxRecord }
-  \end{GoCode}
-  \mycaption{Example Go code.}{The \goType{activeTxRecord} type.}
-  \label{lst:account}
-\end{Listing}
+\section{Repository overview}
+\label{sec:impl:repository-overview}
+
+% \begin{figure}[h]
+%   \centering \includegraphics{cuarms.pdf} \mycaption{Test
+%     image.}{Kindly provided with the CL template.}
+%   \label{fig:example}
+% \end{figure}
+
+% \begin{table}[h]
+%   \centering
+%   \begin{tabular}{| c | c |}
+%     \hline
+%     Float type & Working? \\
+%     \hline
+%     Figure & Check \\
+%     Table & Check \\
+%     Listing & Check \\
+%     \hline
+%   \end{tabular}
+%   \mycaption{Test table.}{Shows whether the different types of floats
+%     used are typeset as expected.}
+%   \label{tbl:example}
+% \end{table}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Evaluation
@@ -555,7 +598,16 @@ formatting of floats.
 
 \chapter{Evaluation}
 
-\TOBEDONE
+\section{Benchmark results}
+\label{sec:eval:benchmark-results}
+
+\section{Extensibility}
+\label{sec:eval:extensibility}
+
+\section{Success criteria}
+\label{sec:eval:success-criteria}
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Conclusion
@@ -563,7 +615,6 @@ formatting of floats.
 
 \chapter{Conclusion}
 
-\TOBEDONE
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Bibliography
