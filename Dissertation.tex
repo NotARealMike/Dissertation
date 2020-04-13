@@ -212,6 +212,10 @@ All that has been completed appears in this dissertation.
 
 \pagestyle{headings}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Intro
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \chapter{Introduction}
 
 \pagenumbering{arabic}
@@ -376,51 +380,94 @@ depth in Section \todo{include section reference}.
 Transactional memories can be implemented in hardware or
 software. Hardware Transactional Memories (HTM) \todo{citation} are
 usually implemented on top of the cache coherence protocol of a
-processor, and are offered as an ISA extension. Because they
-operate at such a low level, HTMs are often very efficient, but the
-size of transactions is limited by the size of cache available and the
+processor, and are offered as an ISA extension. Because they operate
+at such a low level, HTMs are often very efficient, but the size of
+transactions is limited by the size of cache available and the
 implementation cost is extremely high. Software Transactional Memories
 (STM) \cite{STM} are much more flexible, but implementing them
 efficiently can be a challenge. Efficiency concerns with regards to
 STMs are so great that they have been called a ``research toy''
-\cite{toy}.
-
-\section{The algorithm and its use cases}
-\label{sec:algorithm-its-use}
-
-Based on an existing (and used) STM: the JVSTM.  The algorithms used
-are essentially the same.  Versioned boxes store past values, so
-read-only transactions always validate.  Lazy conflict detection, lazy
-updates.
-
-\cite{carvalho2008versioned}
-
-The first part of this project concerns the design and implementation
-of an STM based on versioned boxes \cite{cachopo2006vbb}, and is more
-generally similar to the Java Versioned Software Transactional Memory
-\cite{www:jvstm}. Because this STM will be implemented in Go I have
-chosen to name it GVSTM.
+\cite{Toy}.
 
 \section{Evaluation and benchmarking}
 \label{sec:eval-benchm}
 
-Need for a realistic benchmark, not a toy one.
+As mentioned above, performance is a crucial factor in the evaluation
+of STMs. Although it has been shown that STM can largely outperform
+sequential code in multicore computers \cite{MoreThanToy}, it falls to
+each STM implementation to show that it is sufficiently efficient to
+be adopted. With that goal in mind, it is important for the success of
+this project to demonstrate how the STM implemented performs when
+compared to alternatives, even if it does not outperform them.
 
-STMBench7 models a CAD application.45 operations. Widely accepted as a
-stress test of STMs.
+With that in mind, I have chosen to include in the evaluation of my
+STM the results of the STMBench7 benchmark, which can be regarded as a
+stress test of STMs \cite{STMBench7}. STMBench7 aims to be a realistic
+benchmark, meaning that instead of performing a long series of simple
+transactions, such as reading and writing a handful of variables, it
+performs elaborate operations on complex data structures. A
+description of the benchmark and its data structures and operations
+can be found in Section \todo{include section reference}.
 
-No Go implementation.  Proposal is to implement a subset.  Largest
-part of the project in terms of loc. Top level stuff is handled by go
-test.
+As of the start of this project, there is no Go implementation of
+STMBench7. This means that a considerable part of the work to be
+completed, both in terms of lines of code written and time investment,
+will consist of adapting the existing Java version to be implemented
+in Go. Because of the complexity and size of the benchmark, my
+proposal is to implement a subset of the original 45
+operations. Completing the implementation of the benchmark is an
+extension goal of the project.
+
+\section{The STM chosen}
+\label{sec:stm-chosen}
+
+Although there has been substantial research on the topic of
+transactional memory, and many STMs have been implemented, there are
+few applications that actually use them. From a software engineering
+perspective, there are many possible reasons for this, such as
+adoption costs and little to no support of commonly used
+libraries\todo{tentative, I don't actually know much about this}. One
+of my goals in choosing my project was to develop an STM that could be
+adopted in industry. This is, of course, a very ambitious objective
+for the scope of this project, and is not a goal of the project
+itself. Instead, I see this project as a starting point towards that
+goal, and the possibility of further development can serve as an
+aspect of evaluation.
+
+With this long-term goal in mind, it made sense to base my project on
+an existing STM with a real-world application. Such an STM is the Java
+Versioned Software Transactional Memory (JVSTM) \cite{jvstm}, which
+has been used in the FenixEDU project
+\cite{carvalho2008versioned}. Because my STM uses the same version
+box--based algorithm \cite{VBox} but is implemented in Go instead of
+Java, I have decided to name it Go Versioned Software Transactional
+Memory (GVSTM).
 
 \section{Golang}
 \label{sec:golang}
 
-Developed in Google from 2007, released in 2012.  Designed to exploit
-multicore machines.  Lots of cool projects with server applications:
-Docker, k8s, etcd, ELK stack, Prometheus/Thanos.
+Go \cite{Go}, sometimes referred to as Golang, is a language whose
+development started in 2007 in Google, and which was released in
+2012. Go was designed with a focus on writing concurrent programs. Its
+concurrency model is based on Hoare's CSP: multiple goroutines, Go's
+version of coroutines, communicate through channels, which can be
+blocking or buffered. Go also supports shared memory, as well as locks
+and single-word atomic memory operations. The peculiarities of Go and
+their implications on my project are discussed in Section
+\todo{include section reference}.
 
-No thread locals, so pass context around explicitly. No generics.
+One of the primary uses of Go has been to build server applications,
+and there is a growing environment of tools and libraries to support
+this. Examples are Docker and Kubernetes implementations, the etcd
+key-value store system \cite{etcd}, the Elasticsearch-Logstash-Kibana
+stack for logging \cite{ELK} and Prometheus for metric tracking
+\cite{Prom}. One of my goals when choosing to use Go for this project
+was to eventually contribute to this environment, and make it easy for
+software engineers to build server applications using STM.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Preparation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{Preparation}
 
@@ -449,6 +496,10 @@ this project to my supervisor.
 
 
 \TOBEDONE
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Implementation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{Implementation}
 
@@ -498,9 +549,17 @@ formatting of floats.
   \label{lst:account}
 \end{Listing}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Evaluation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \chapter{Evaluation}
 
 \TOBEDONE
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Conclusion
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{Conclusion}
 
