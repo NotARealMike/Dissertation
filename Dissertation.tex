@@ -4,6 +4,10 @@
 
 \documentclass[12pt,a4paper,oneside,openright]{report}
 
+% makes subsubsections appear in the toc
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
 % turns references into hyperlinks
 \usepackage[pdfborder={0 0 0}]{hyperref}
 
@@ -88,6 +92,7 @@
 
 \newcommand{\TOBEDONE}{{\LARGE To be done...}}
 \newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
+\newcommand{\note}[1]{\textcolor{blue}{NOTE: #1}}
 
 \newcommand{\javaLiteral}[1]{\texttt{#1}}
 \newcommand{\javaCode}[1]{\texttt{#1}}
@@ -103,7 +108,7 @@
 \newcommand{\goType}[1]{\texttt{#1}}
 \newcommand{\goVariable}[1]{\texttt{#1}}
 \newcommand{\goKeyword}[1]{\texttt{#1}}
-\newcommand{\goMethod}[1]{\texttt{#1}}
+\newcommand{\goFunc}[1]{\texttt{#1}}
 
 \newcommand{\keyTerm}[1]{\textbf{#1}}
 
@@ -117,11 +122,11 @@
   and benchmarking in Go}
 \newcommand{\college}{Churchill College}
 \newcommand{\studentname}{Rui Cachopo}
-\newcommand{\candidatenumber}{2239G}
+\newcommand{\candidatenumber}{2399F} %checked Moodle on 25/04/2020
 \newcommand{\studentemail}{rmc82@cam.ac.uk}
 \newcommand{\wordcount}{0000}
 \newcommand{\loc}{0000}
-\newcommand{\originator}{Rui Cachopo}
+\newcommand{\originator}{\candidatenumber}
 \newcommand{\supervisor}{Tim Harris}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -173,27 +178,60 @@ made available to the students and staff of the University.
 
 {\large
   \begin{tabular}{L{0.3\linewidth} L{0.7\linewidth}}
-    Candidate number: & \bf \candidatenumber                      \\
-    Project Title:      & \bf \disstitle \\
-    Examination:        & \bf Computer Science Tripos -- Part II, July 2020  \\
-    Word Count:         & \bf \wordcount  \\
-    Lines of code : & \bf \loc \\
-    Project Originator: & \originator \\
-    Supervisor: & \supervisor \\
+    \textbf{Candidate number:} & \candidatenumber                      \\
+    \textbf{Project Title:}           & \disstitle \\
+    \textbf{Examination:}        & Computer Science Tripos -- Part II, July 2020  \\
+    \textbf{Word Count:}         & \wordcount  \\
+    \textbf{Lines of code:} & \loc \\
+    \textbf{Project Originator:} & \originator \\
+    \textbf{Supervisor:} & \supervisor \\
   \end{tabular}
 }
 
 \section*{Original Aims of the Project}
 
+The core goals of the project were to implement a Software
+Transactional Memory and to make a meaningful evaluation of the system
+produced. This evaluation involves both quantitative benchmark results
+and qualitative results related to the usability of the system. The
+technical deliverables are implementations of the STM and the
+benchmark produced --- as there is no existing realistic benchmark in
+the language chosen for this project. The qualitative results of the
+evaluation can be found in the evaluation chapter of this
+dissertation.
+
 \section*{Work Completed}
 
-All that has been completed appears in this dissertation.
+All the success criteria of the project have been met. I implemented
+the Go Versioned Software Transactional Memory and demonstrated its
+correctness and performance by producing an implementation of the
+STMBench7 benchmark and accompanying tests. Due to the difficulties
+described in the section below I had much less time than I had hoped
+to work on extension tasks.
+
+The completion of this work required substantial research into
+Transactional Memory and Go's concurrency primitives and memory
+model. Implementation of an application as large as the STMBench7
+benchmark also required knowledge and use of software engineering
+patterns and practices.
 
 \section*{Special Difficulties}
- 
-\tableofcontents
+
+In November 2019 I had a climbing accident that resulted in a
+dislocated elbow. This halted project work, and in fact all academic
+work, for a few weeks until I was able to use a keyboard again.
+
+Starting in March 2020, the COVID-19 pandemic forced me, and indeed
+the vast majority of students, to work from home for the rest of the
+academic year. This meant that the last month of work on the project
+and this dissertation were completed in an environment much less
+productive than expected.
+
+\newpage
 
 \pagestyle{plain} \pagenumbering{roman}
+
+\tableofcontents
 
 \listoffigures{}
 
@@ -295,9 +333,9 @@ low-hanging fruit of processor design had been harvested:
 As the limits of single-core performance and latent ILP were reached,
 processor designers shifted their focus to multicore processors, which
 are capable of exploiting Thread Level Parallelism (TLP)
-\cite[Chapter~5]{CompArchBook}. As opposed to ILP, which is can be
+\cite[Chapter~5]{CompArchBook}. As opposed to ILP, which can be
 automatically exploited by the processor in most applications, TLP is
-much harder to automatically exploit. This means that the burden is
+much harder to exploit automatically. This means that the burden is
 now on programmers to write concurrent applications if they want to
 reap the benefits of increasing processor performance. Enter the
 software revolution towards concurrent programming.
@@ -358,7 +396,7 @@ memory, a programmer organises their code into transactions, similar
 to the transactions in the transactional model of databases. It is
 then up to the underlying TM implementation to provide atomicity and
 isolation of the transactions executed. That is, the memory operations
-of each transaction executed appear to all occur atomically, and no
+of each transaction executed appear to occur atomically, and no
 transaction can see the results of a partial execution of any other
 transaction.
 
@@ -372,22 +410,23 @@ consider that we want to dequeue an element from a concurrent queue
 $Q_1$ and enqueue it in concurrent queue $Q_2$, but without any other
 thread observing that the element is in neither or both queues at the
 same time. Attempting to solve this problem with locks would be fairly
-complex, involving either the inclusion of additional locks or the
-exposition of internal locking logic of the concurrent queues. In a TM
-model, however, the solution is trivial. This is discussed in more
-depth in Section \todo{include section reference}.
+complex, involving either additional locks or exposing the internal
+locking logic of the concurrent queues. In a TM model, however, the
+solution is trivial: simply execute both operations in the same
+transaction.. This is discussed in more depth in Section \todo{include
+  section reference}.
 
 Transactional memories can be implemented in hardware or
 software. Hardware Transactional Memories (HTM) \todo{citation} are
 usually implemented on top of the cache coherence protocol of a
-processor, and are offered as an ISA extension. Because they operate
-at such a low level, HTMs are often very efficient, but the size of
-transactions is limited by the size of cache available and the
-implementation cost is extremely high. Software Transactional Memories
-(STM) \cite{STM} are much more flexible, but implementing them
-efficiently can be a challenge. Efficiency concerns with regards to
-STMs are so great that they have been called a ``research toy''
-\cite{Toy}.
+processor, and are offered as an Instruction Set Architecture (ISA)
+extension. Because they operate at such a low level, HTMs are often
+very efficient, but the size of transactions is limited by the size of
+cache available and the implementation cost is extremely
+high. Software Transactional Memories (STM) \cite{STM} are much more
+flexible, but implementing them efficiently can be a
+challenge. Efficiency concerns with regards to STMs are so great that
+they have been called a ``research toy'' \cite{Toy}.
 
 \section{Evaluation and benchmarking}
 \label{sec:eval-benchm}
@@ -471,73 +510,209 @@ software engineers to build server applications using STM.
 
 \chapter{Preparation}
 
-I will begin this chapter by giving a brief overview of some of the
-characteristics of Go. I will then use this information to explain
-some of the design decisions made in this project. From there, I will
-outline the main items of work necessary for the success of the
-project. I will conclude by stating my starting point in terms of
-knowledge and code written, and briefly describe the software
-engineering approach used.
+I begin this chapter with an overview of my research and work
+completed before the start of the project. I then give an overview of
+the requirements of an STM, from both a technical perspective and one
+of producing a system that can be adopted in a software engineering
+environment. I give an overview of the research conducted to bridge
+the gap between my starting point and the desired outcome, and the
+impact of this research on the principal design decisions made. I
+conclude the chapter by describing my engineering methodology, as well
+as details of the hardware and software systems used.
 
-\section{Go characteristics}
-\label{sec:go-characteristics}
+\section{Starting point}
+\label{sec:prep:starting-point}
 
-Left to discuss:
+\paragraph{Experience with Go programming}
 
-\begin{itemize}
-\item No generic programming, but polymorphism through interfaces,
-  duck typing.
-\item No thread locals.
-\item Not very clear memory model.
-\end{itemize}
+\paragraph{Knowledge of the STM algorithm}
 
-\section{Design decisions}
-\label{sec:design-decisions}
+\paragraph{Prototype built for project proposal}
 
-Left to discuss:
-
-\begin{itemize}
-\item Untyped arguments and return types, require explicit casting.
-\item Transaction objects passed as arguments.
-\end{itemize}
+\paragraph{Access to JVSTM and STMBench7 codebases}
 
 \section{Requirements analysis}
 \label{sec:requ-analys}
 
-Left to discuss:
+\subsection{Functional requirements}
+\label{sec:prep:techn-requ}
 
-\begin{itemize}
-\item Read and write variables, leave more complex stuff for later.
-\item Garbage collection.
-\item Composability.
-\item STMBench7 gives sensible output.
-\end{itemize}
+\paragraph{Reading and writing transactional variables} This is the
+minimum requirement for an STM. How to handle more complex behaviour
+such as exceptions and I/O is an interesting subject, but beyond the
+scope of this implementation. \note{Actually, ``exceptions'' in Go are
+  passed around as values. If I have space I could talk about
+  this. Could also talk about representing I/O as monads by using Go's
+  support for functions as first class citizens, and say how that
+  could be a great source for future work.}
 
-\section{Starting point}
-\label{sec:starting-point}
+\paragraph{Composability}
 
-Left to discuss:
 
-\begin{itemize}
-\item Experience in Go from internship at Improbable.
-\item Some knowledge about VBoxes.
-\item Prototype built for project proposal.
-\item Access to JVSTM and STMBench7 codebases.
-\end{itemize}
+\subsection{Quality requirements}
+\label{sec:prep:usab-requ}
+
+\paragraph{Performance} Talk about possible SLA's a user of an STM may
+care about, such as total throughput and max TTC for particular
+operations.
+
+\paragraph{Usability} How much easier is it to use the STM than it is
+to design an algorithm using locks?
+
+\section{Research --- features of Go}
+\label{sec:prep:research}
+\todo{Find a better section title.}
+
+In this section I introduce some Go concepts that are likely to be new
+to people unfamiliar with the language and summarise the key
+differences between Go and Java that influenced the design decisions
+in my project. In this section I will heavily refer to the Go language
+specification, which can be found at
+\href{https://golang.org/ref/spec}{golang.org/ref/spec}, and its
+memory model, at
+\href{https://golang.org/ref/mem}{golang.org/ref/mem}.
+
+\subsection{Goroutines}
+\label{sec:prep:goroutines}
+
+Essentially light-weight threads.
+
+\subsection{Locks in Go}
+\label{sec:prep:locks-go}
+
+Read-write locks, not reentrant.
+
+\subsection{Polymorphism}
+\label{sec:prep:polymorphism}
+
+Go, at the time of writing (version 1.14), does not offer generic
+programming, but supports polymorphism in the form of interfaces.
+
+Interfaces are sets of methods. Any type that implements all methods
+of an interface implements the interface --- duck typing. The empty
+interface is implemented by all types, so it can be used to represent
+any type.
+
+\subsection{Object semantics}
+\label{sec:prep:oop}
+
+Object semantics are useful. Go is not Object oriented, but object
+semantics can be achieved by using the interface pattern.
+
+\subsection{Thread local memory}
+\label{sec:prep:thread-locals}
+
+There is a way to find the goroutine ID, which involves using cgo to
+call a C function. This could be used to implement ``goroutine-local''
+variables. When I looked into this it seemed to be no longer possible
+--- as of Go 1.5 the runtime and the compiler are written in Go and
+not C. However it seems that since then there has been increasing
+technical support of cgo. It is still very frowned upon to use it
+though.
+
+https://github.com/golang/go/issues/22770
+
+https://blog.sgmansfield.com/2015/12/goroutine-ids/
+
+Talk about the transaction objects and the assembly level locks to
+acquire in the MG locking approach.
+
+\subsection{Errors and panics}
+\label{sec:prep:panics-errors}
+
+Make the parallel between Go's errors and Java's checked exceptions,
+Go's panics and Java's unchecked exceptions.
+
+\subsection{Memory model}
+\label{sec:prep:memory-model}
+
+When trying to fix a race between populating a body and updating the
+corresponding box, I ran into a question of what the memory model says
+(or more accurately, doesn't say) about the guarantees given by the
+LoadPointer and StorePointer functions.
+
+Neither the model or implementation says anything meaningful about
+these functions (only that they are atomic). It also doesn't say much
+about the Value Load and Store functions, but the documentation has an
+example that seems to assume that the semantics of the Value functions
+are what I need them to be.
+
+\todo{It is worth checking, if I have time, whether changing
+  Value/Load/Store for unsafe.Pointer/LoadPointer/StorePointer gives
+  any performance improvements while maintaining correctness.}
+
+\subsection{Summary of key differences between Go and Java}
+\label{sec:prep:summ-key-diff}
+
+Have a table of features present in each language.
+
+\section{Design decisions}
+\label{sec:prep:design-decisions}
+
+\subsection{Typing}
+\label{sec:prep:typing}
+
+Because Go does not offer generic programming, a user of the library
+must use type casting when reading values from a transactional
+variable. The return type of loads and the argument type of stores is
+the empty interface.
+
+\subsection{The \goFunc{Atomic} function}
+\label{sec:prep:atomic-function}
+
+All reads and writes of TVars that occur inside a call to Atomic
+appear to occur atomically and in isolation from other transactions.
+
+\subsection{Explicit transaction objects}
+\label{sec:prep:expl-trans-objects}
+
+Because there are no thread-locals, transaction context must be passed
+around explicitly.
+
+\subsection{The ``transactional'' property}
+\label{sec:prep:cont-trans-prop}
+
+Because transaction objects need to be passed around explicitly, and
+because they are required to access a TVar, we can define
+transactional functions inductively as:
+
+\begin{enumerate}
+\item A function is transactional if it reads or writes a TVAr.
+\item A function is transactional if it calls a transactional function
+  without surrounding said call in a call to Atomic.
+\end{enumerate}
+
+\subsection{Aborts using panics}
+\label{sec:prep:aborts-using-panics}
+
+The user should not be aware of the inner workings of the STM, or
+necessarily care that there is an internal distinction between
+read-only and read-write transactions. The only way to immediately
+abort a transaction without the user programming for it is to use a
+panic.
+
+\subsection{The interface pattern in STMBench7}
+\label{sec:prep:interf-patt-stmb}
+
+I want object semantics pretty much everywhere in STMBench7, so the
+interface pattern is extensively used, even if some interfaces have
+only one implementation.
 
 \section{Engineering methodology}
 \label{sec:engin-meth}
 
-Left to discuss:
+\paragraph{Version control}
 
-\begin{itemize}
-\item Git, Github.
-\item Backups.
-\item Why not TDD?
-\end{itemize}
+\paragraph{Backup policy}
 
-\section{STMBench7}
-\label{sec:prep:stmbench7}
+\paragraph{Test-driven development}
+Why was this not a good approach for this project?
+
+\paragraph{Linting}
+\todo{I should run go lint on the codebase.}
+
+\paragraph{Versions and licenses}
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -554,24 +729,252 @@ repository, for the interested reader to use as reference.
 \section{GVSTM}
 \label{sec:impl:gvstm}
 
+\subsection{Versioned data structures}
+\label{sec:impl:vers-data-struct}
+
+VBoxes, VBodies. Basically a linked list and a wrapper. Lets
+transactions read into the past.
+
+\subsection{Conflicts}
+\label{sec:impl:conflicts}
+
+All types of memory conflicts. Which ones do we actually care about
+--- RAW.
+
+\subsection{Different methods of dealing with conflicts}
+\label{sec:impl:diff-meth-deal}
+
+Eager vs lazy conflict detection, eager vs lazy update.
+
+JVSTM is lazy-lazy.
+
+\note{Would it be worth mentioning here some results about the
+  performance of different approaches?}
+
+\subsection{Read-sets and write-sets to detect conflict}
+\label{sec:impl:read-sets-write}
+
+Describe the validation algorithm of the JVSTM.
+
+\note{Is this a good place to mention memory allocation costs? The
+  JVSTM allocates the memory for all VBodies at commit time. The GVSTM
+  does it when the first write to a VBox is made. This shortens commit
+  time, which is the concurrency bottleneck.}
+
+\subsection{Read-only transactions}
+\label{sec:impl:read-only-trans}
+
+Only RAW conflicts are a problem. Because versioned data structures
+allow reads of past values, read-only transactions can always read
+consistent values, and hence never cause a conflict. This means that
+read-only transactions always validate by construction, and hence do
+not require the overheads of keeping read-sets and write-sets. This
+means that read transactions in the GVSTM are extremely lightweight,
+and pretty much always outperform locking approaches. This is always
+the case in read-write workloads, because read-only transactions using
+locks will often need to wait for a RW lock to be released by a
+writer. It is still to an extent the case in read-only workloads
+according to my results so far. I assume this is because the cost of
+creating an empty transaction object in local cache is less than that
+of acquiring a read-lock, which requires memory barriers.  \todo{Ref
+  some section of the evaluation that supports this.}
+
+\note{May be interesting to note that write-only transactions also
+  never fail to validate, but in practice are very rare.}
+
+\subsection{Flat nesting}
+\label{sec:impl:flat-nesting}
+
+Because nested transactions use the same transaction object we get
+flat nesting.
+
+\subsection{Garbage collection}
+\label{sec:impl:garbage-collection}
+
+This is a requirement because versioned data structures keep a
+history. The history needs to be truncated or else the program runs
+out of memory.
+
+\subsection{Extensions}
+\label{sec:impl:extensions}
+
+Here I discuss some extensions that could be made to the GVSTM. I did
+not implement these extensions partly because of the time restrictions
+on the project, and partly because STMBench7 does not leverage either
+of them, so I would not be able to meaningfully evaluate
+them. Nevertheless, these features increase the expressivity of STM
+and could be implemented in future work.
+
+\subsubsection{Abort and retry semantics}
+\label{sec:impl:abort-retry-semant}
+
+\subsubsection{Different nesting semantics}
+\label{sec:impl:diff-nest-semant}
+
+\subsubsection{Side effects as monads}
+\label{sec:impl:side-effects-as}
+
+The GVSTM only deals with access to transactional variables. If a
+transaction does other types of side effects, such as printing to a
+file or channel communication, those effects are not
+transactional. One way this could be changed would be to represent
+these effects as monads in the form of functions kept by the
+transaction object. On commit, each of these monads is executed.
+
+This solution only handles cases in which the transaction is producing
+output. Much more careful thinking is required in the case where the
+transaction consumes some input.
+
 \section{STMBench7}
 \label{sec:impl:stmbench7}
 
-Left to discuss:
+\subsection{Collection of results}
+\label{sec:impl:collection-results}
 
-\begin{itemize}
-\item Steps taken to facilitate collection of results.
-\item The overall design of the benchmark.
-\item The levels at which interfaces are drawn.
-\item Adaptations to be made.
-\end{itemize}
+To facilitate the collection of results, I changed the top level code
+to output benchmark results to a file. Each run of the benchmark
+creates a new file, whose name is the time at which the benchmark was
+run and which contains information about the parameters used.
+
+\subsection{Data structures}
+\label{sec:impl:data-structures}
+
+Include a diagram of the data structure, similar to the one in the
+paper.
+
+\subsection{Operations}
+\label{sec:impl:operations}
+
+Operations can fail due to operation logic. This is not due to
+conflict or transactions aborting, but for example that ID pools are
+empty or that a random traversal reached a base assembly with no
+composite parts.This means that when looking at benchmark results it
+makes sense to look at the total throughput and not only at the
+throughput of successful operations.
+
+\subsubsection{Long traversals}
+\label{sec:impl:long-traversals}
+
+\subsubsection{Short traversals}
+\label{sec:impl:short-traversals}
+
+\subsubsection{Short operations}
+\label{sec:impl:short-operations}
+
+\subsubsection{Structure modification operations}
+\label{sec:impl:struct-modif-oper}
+
+\subsection{Design patterns}
+\label{sec:impl:design-patterns}
+
+\note{Whoever wrote the Java version of STMBench7 probably swallowed a
+  copy of the gang of four at some point. This makes the code a lot
+  harder to understand for someone who hasn't, but makes it easier to
+  extend and gives me a lot to write about in my dissertation. I could
+  use this as a demonstration of CS/SWE knowledge.}
+
+\paragraph{Factory method}
+There is a factory method for pretty much every type.
+
+\paragraph{Abstract Factory}
+There are three abstract factories:
+
+\begin{description}
+\item[Design Objects] All the data structures described above. The
+  GVSTM implementation uses TVars, the locking based implementations
+  don't. The locking implementations are sequential, and locking is
+  handled by the executors. The exception to this is the complex
+  assembly implementation for MG locking, which requires acquiring
+  some locks.
+\item[Backend] This makes it easy to change the implementation of the
+  underlying sets and such. Link this to providing a library of
+  versioned data structures.
+\item[Executors] This is actually just one factory method, but I
+  turned it into a factory to be consistent with the others and with
+  the Java version.
+\end{description}
+
+Bonus: the factories are singletons!
+
+\paragraph{Builder}
+
+Builders are used to create and destroy the data structures, and
+encapsulate the indexing of the objects in their respective indexes
+and the creation of components, such as a document for composite
+parts, children assemblies for a complex assembly, etc.
+
+\paragraph{Executor}
+
+Executors are somewhat like the command pattern I believe?
+
+\subsection{Testing}
+\label{sec:impl:testing}
+
+\subsubsection{Invariant testing}
+\label{sec:impl:invariant-testing}
+
+Checking that some application level invariants on the data structures
+and indexes are maintained.
+
+These tests are actually useful: they helped me detect and fix a few
+bugs when I was implementing the operations, both in my backend data
+structure implementations and in some other places where I made silly
+mistakes (eg. not checking for null value before casting, using
+strings.HasSuffix instead of strings.HasPrefix).
+
+\subsubsection{Opacity testing}
+\label{sec:impl:opacity-testing}
+
+Checking that the parallel execution is equivalent to a sequential
+execution.
+
+This is essentially a property of the algorithm. Because I am using an
+existing algorithm, for which opacity has been demonstrated, running
+these tests would have little value.
+
+Running these tests also increases the iteration time of running the
+benchmark very significantly, because the multithreaded code needs to
+be rerun sequentially.
+
+Because the operations include randomness, this requires complicated
+thread-local random state. This would be a lot of additional work for
+little extra benefit, so I decided to spend my time on other
+things. Good software engineering practice, huh?
+
+\subsection{Extensions}
+\label{sec:impl:possible-extensions}
+
+\paragraph{Implementing all 45 operations}
+DONE: implement all the operations, instead of just a subset.
+
+\paragraph{Efficient backend data structures}
+
+Make more efficient backend data structure implementations and see how
+the performance changes.
+
+\paragraph{Command line interface}
+
+Turn the benchmark into a proper CLI command, to make running it
+easier.
+
+\paragraph{Containerising}
+Make a Docker container with the benchmark, to be run on an AWS
+instance with many more cores.
+
+\paragraph{Rewrite the benchmark to be fairer}
+The method to create and register a complex assembly is unfair to
+STMs: if the ID pool for either complex or base assemblies is
+exhausted the method undoes all its work. This involves a lot of
+operations on backend structures. Some STM implementations, such as
+the GVSTM, could simply abort or retry when they detect such an error,
+which would be much more efficient.
 
 \section{Repository overview}
 \label{sec:impl:repository-overview}
 
 % \begin{figure}[h]
 %   \centering \includegraphics{cuarms.pdf} \mycaption{Test
-%     image.}{Kindly provided with the CL template.}
+%   image.}{Kindly provided with the CL template.}
 %   \label{fig:example}
 % \end{figure}
 
@@ -586,8 +989,8 @@ Left to discuss:
 %     Listing & Check \\
 %     \hline
 %   \end{tabular}
-%   \mycaption{Test table.}{Shows whether the different types of floats
-%     used are typeset as expected.}
+%   \mycaption{Test table.}{Shows whether the different types of
+%   floats used are typeset as expected.}
 %   \label{tbl:example}
 % \end{table}
 
@@ -598,16 +1001,123 @@ Left to discuss:
 
 \chapter{Evaluation}
 
-\section{Benchmark results}
-\label{sec:eval:benchmark-results}
-
-\section{Extensibility}
-\label{sec:eval:extensibility}
+In this chapter I recall the original goals of the project and
+describe how they were achieved. I give quantitative results of
+benchmarking the GVSTM with STMBench7 and qualitative conclusions from
+using both locking approaches and the GVSTM to implement STMBench7. I
+conclude with the real-world implications on the usability of the
+GVSTM as an alternative to locking approaches in a variety of
+scenarios.
 
 \section{Success criteria}
 \label{sec:eval:success-criteria}
 
 
+\section{Benchmark results}
+\label{sec:eval:benchmark-results}
+
+\subsection{Metrics}
+\label{sec:eval:metrics}
+
+\paragraph{Total throughput}
+
+\paragraph{Maximum time to completion}
+
+\paragraph{Time to completion histograms}
+May be interesting to show some histograms of TTC for some operation
+types, but that may take up a lot of space. Could keep that in an
+appendix.
+
+\subsection{Impact of the number of threads}
+\label{sec:eval:impact-numb-thre}
+
+\subsection{Impact of structure modifications}
+\label{sec:impl:impact-struct-modif}
+
+Enabling structure modifications reduces throughput by more than one
+order of magnitude for all synchronisation approaches.
+
+\subsection{Workloads}
+\label{sec:impl:workloads}
+
+\subsubsection{Read-only workload}
+\label{sec:impl:read-only-workload}
+
+\subsubsection{Read-dominated workload}
+\label{sec:eval:read-domin-workl}
+
+\subsubsection{Read-write workload}
+\label{sec:impl:read-write-workload}
+
+\subsubsection{Write-dominated workload}
+\label{sec:eval:write-domin-workl}
+
+
+\subsection{Summary of results}
+\label{sec:eval:summary-results}
+
+Using the gvstm, long RW operations have very long TTCs, but read only
+operations are not affected.
+
+Using locking approaches, all operation types have similar TTCs. Can
+relate this to different SLAs an application maintainer could have
+with their users.
+
+\section{Ease of use}
+\label{sec:eval:ease-use}
+
+\subsection{Implementing STMBench7}
+\label{sec:eval:impl-stmb}
+
+How easy it was to implement the executors:
+
+\begin{itemize}
+\item The GVSTM executor simply wraps the operation to execute in a
+  call to Atomic.
+\item The CG locking executor uses global read-write locks. When
+  creating an executor for an operation, it determines whether it is
+  read-only or read-write, which is baked into the program, and then
+  acquires the appropriate lock before executing.
+\item The MG locking is much more complicated. It has read-write locks
+  for each of several types of structures, as well as one read-write
+  lock for each level of assemblies. I spent an afternoon fixing
+  causes of deadlock and releases of not-acquired locks, even though I
+  was pretty much only translating the algorithm. This shows how
+  complicated programming with locks can be. (Part of the problem was
+  that I forgot that the Java version uses reentrant locks, and Go
+  does not have reentrant locks. I had to add some extra logic to make
+  sure each lock is only acquired once.)
+\end{itemize}
+
+\subsection{Change of function signatures}
+\label{sec:eval:change-funct-sign}
+
+Any transactional function must receive a transaction object as an
+argument. This means that it is difficult to use external libraries to
+access shared memory transactionally, as the library would have to be
+rewritten to pass around transaction objects.
+
+A partial solution to this problem is the extension of making
+transactional side effects using monads.
+
+Locking would, to an extent, avoid this. That is, if only global locks
+were used, the library need not know about any form of
+synchronisation. However, as the implementation of the medium grained
+locking approach has shown, an efficient locking approach will often
+need more fine-grained control over locks, and locking state is passed
+into the library.
+
+\section{Real-world implications}
+\label{sec:eval:real-world-impl}
+
+Relate the results to real-world applications and SLAs that they may
+have. The GVSTM offers extremely efficient read operations even in the
+presence of writes, which locking approaches do not. It offers a
+reasonably strong guarantee on the freshness of results of a read-only
+transaction: if a read-only transaction begins after some other
+transaction commits, the view of the read-only transactional will be
+at least as fresh as the results of the committed transaction. This is
+similar to linearisability.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Conclusion
@@ -615,6 +1125,23 @@ Left to discuss:
 
 \chapter{Conclusion}
 
+\section{Achievements}
+\label{sec:conc:achievements}
+
+\section{Lessons learnt}
+\label{sec:conc:lessons-learnt}
+
+Overall the project went well, and I do not regret any of the
+technical decisions made. For students looking to do similar projects
+in the future, I would recommend including some means of evaluating
+more complex features, such as the extensions described in the
+implementation chapter. If possible, make use of existing benchmarks
+and add your own.
+
+\section{Future work}
+\label{sec:conc:future-work}
+
+Summary of the extensions described in the implementation chapter.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Bibliography
