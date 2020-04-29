@@ -10,6 +10,8 @@
 
 % turns references into hyperlinks
 \usepackage[pdfborder={0 0 0}]{hyperref}
+\newcommand{\URL}[1]{\href{https://#1}{\textcolor{cyan}{\texttt{#1}}}}
+
 
 % adjusts page layout
 \usepackage[margin=25mm]{geometry}
@@ -86,6 +88,31 @@
 \DefineVerbatimEnvironment{GoCode}{Verbatim}
 {fontfamily=courier,baselinestretch=1,gobble=4}
 
+\usepackage{listings}
+\usepackage{color}
+\usepackage{mathtools}
+
+\definecolor{dkgreen}{rgb}{0,0.4,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{
+  language=Java,
+  aboveskip=0mm,
+  belowskip=0mm,
+  showstringspaces=false,
+  %columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=left,
+  keywordstyle=\bfseries,
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=4
+}
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Semantic and convenience macros
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -106,6 +133,7 @@
 
 \newcommand{\goCode}[1]{\texttt{#1}}
 \newcommand{\goType}[1]{\texttt{#1}}
+\newcommand{\goValue}[1]{\texttt{#1}}
 \newcommand{\goVariable}[1]{\texttt{#1}}
 \newcommand{\goKeyword}[1]{\texttt{#1}}
 \newcommand{\goFunc}[1]{\texttt{#1}}
@@ -172,12 +200,12 @@ made available to the students and staff of the University.
 
 \medskip \leftline{Date: \today}
 
-\chapter*{Proforma}
+
+\chapter*{\vspace{-1.2in} Proforma \vspace{-0.3in}}
 
 \thispagestyle{empty}
 
-{\large
-  \begin{tabular}{L{0.3\linewidth} L{0.7\linewidth}}
+{ \begin{tabular}{L{0.3\linewidth} L{0.7\linewidth}}
     \textbf{Candidate number:} & \candidatenumber                      \\
     \textbf{Project Title:}           & \disstitle \\
     \textbf{Examination:}        & Computer Science Tripos -- Part II, July 2020  \\
@@ -277,21 +305,18 @@ programmers. Finally, we can see how STM tackles these problems.
 \subsection{The problem}
 \label{sec:problem}
 
-Starting in the later half of the last century, and especially in the
-period of 1986--2003, single-core processor performance grew
-exponentially at such a rate that hardware became obsolete within one
-or two years. This was mostly thanks to two ``laws'' of processor
-design: Moore's law \cite{MooreLaw} and Dennard scaling
-\cite{DennardScaling}. Moore's law is the observation that, due to the
-production of smaller transistors, the number of transistors in a
-processor doubles every two years\footnotemark. Dennard scaling states
-that as transistors get smaller and consume less power, their power
-density stays constant, so the power consumption of the whole
-processor remains constant.
-
-\footnotetext{The prediction in the 1965 paper was a doubling in
-  transistor count every year, but this was revised in 1975 to a
-  doubling every two years.}
+In the last few decades, and especially in the period of 1986--2003,
+single-core processor performance grew exponentially at such a rate
+that hardware became obsolete within one or two years. This was mostly
+thanks to two ``laws'' of processor design: Moore's law
+\cite{MooreLaw} and Dennard scaling \cite{DennardScaling}. Moore's law
+is the observation that, due to the production of smaller transistors,
+the number of transistors in a processor doubles every two
+years. Although the prediction in the 1965 paper was a doubling in
+transistor count every year, this was revised in 1975 to a doubling
+every two years. Dennard scaling states that as transistors get
+smaller and consume less power, their power density stays constant, so
+the power consumption of the whole processor remains constant.
 
 The combination of these laws impacts processor performance in three
 main ways:
@@ -310,9 +335,8 @@ main ways:
   Instruction Level Parallelism (ILP) \cite[Chapter~3]{CompArchBook}
   latent in most programs.
 \end{itemize}
-
-This processor performance free lunch \cite{FreeLunchIsOver} ended in
-the early 2000's, when Dennard scaling ceased to hold and the
+This processor performance ``free lunch'' \cite{FreeLunchIsOver} ended
+in the early 2000s, when Dennard scaling ceased to hold and the
 low-hanging fruit of processor design had been harvested:
 
 \begin{itemize}
@@ -320,85 +344,94 @@ low-hanging fruit of processor design had been harvested:
   factor in the complexity of a single core and on the clock frequency
   of the processor.
   
-\item The performance penalties caused by interruptions, such as cache
-  misses and mispredicted branches, increases with the length of the
-  processor pipeline. This means deeper pipelines yield diminishing
-  returns.
+\item The performance penalties caused by processor stalls, such as
+  cache misses and mispredicted branches, increases with the length of
+  the processor pipeline. This means deeper pipelines yield
+  diminishing returns.
   
 \item The amount of ILP latent in most programs is limited. This means
   that increasingly complex superscalar hardware will also yield
   diminishing returns.
 \end{itemize}
-
 As the limits of single-core performance and latent ILP were reached,
 processor designers shifted their focus to multicore processors, which
 are capable of exploiting Thread Level Parallelism (TLP)
 \cite[Chapter~5]{CompArchBook}. As opposed to ILP, which can be
-automatically exploited by the processor in most applications, TLP is
-much harder to exploit automatically. This means that the burden is
-now on programmers to write concurrent applications if they want to
-reap the benefits of increasing processor performance. Enter the
-software revolution towards concurrent programming.
+automatically exploited by the processor in most applications, TLP
+usually requires the program to be written using multiple
+threads. This means that the burden is now on programmers to write
+concurrent applications if they want to reap the benefits of
+increasing processor performance. Enter the software revolution
+towards concurrent programming.
 
 \subsection{Possible solutions}
 \label{sec:possible-solutions}
 
-The model most commonly used in concurrent programs consists of
-multiple threads, which communicate through access to shared
-memory. Low level primitives such as locks are used to provide
-condition synchronisation and mutual exclusion when accessing shared
-resources. This model is sufficient for simple programs, but it does
-not scale to large applications. Problems such as deadlock and
-priority inversion are hard to detect and debug in large programs. The
-lack of a semantic link between a mutex lock and the resource it
-protects leads to what Herlihy and Shavit call ``synchronisation by
-convention'' \cite[Chapter 18]{ArtMultiprocessorProgramming}.
+\paragraph{Locking.} The model most commonly used in concurrent
+programs consists of multiple threads, which communicate through
+access to shared memory. Low level primitives such as locks are used
+to provide condition synchronisation and mutual exclusion when
+accessing shared resources. This model is sufficient for simple
+programs, but it does not scale to large applications. Problems such
+as deadlock and priority inversion are hard to detect and debug in
+large programs. The lack of a semantic link between a mutex lock and
+the resource it protects leads to what Herlihy and Shavit call
+``synchronisation by convention'' \cite[Chapter
+18]{ArtMultiprocessorProgramming}.
 
 \begin{Listing}[hbtp]
-  \begin{JavaCode}
-    /* * * When a locked buffer is visible to the I/O layer BH_Launder
-    * is set. This means before unlocking we must clear * BH_Launder,
-    mb() on alpha and then clear BH_Lock, * so no reader can see
-    BH_Launder set on an unlocked buffer * and then risk to deadlock.
-    */
-  \end{JavaCode}
+\begin{lstlisting}
+/* When a locked buffer is visible to the I/O layer BH_Launder
+ * is set. This means before unlocking we must clear BH_Launder,
+ * mb() on alpha and then clear BH_Lock, so no reader can see
+ * BH_Launder set on an unlocked buffer and then risk to
+ * deadlock.
+ * /
+\end{lstlisting}
+
   \mycaption{Synchronisation by convention.}{This Linux kernel comment
     demonstrates how real-world concurrent systems rapidly become
     complex.}
   \label{lst:syncConv}
 \end{Listing}
 
-Several approaches have been suggested as solutions to the problems
-present when using locks and shared memory. The most basic of these is
-the use of slightly higher level primitives, such as monitors and
-condition variables. Java is a good example of this: the JVM
-associates one monitor and one condition variable with each object. A
+
+\paragraph{Monitors and condition variables.} Several approaches have
+been suggested as solutions to the problems present when using locks
+and shared memory. The most basic of these is the use of slightly
+higher level primitives, such as monitors and condition
+variables. Java is a good example of this: the JVM associates one
+monitor and one condition variable with each object. A
 \javaKeyword{synchronized} code block runs inside a monitor, which can
 be used to provide mutual exclusion. The condition variables can be
 used for condition synchronisation using the \javaMethod{wait},
 \javaMethod{notify} and \javaMethod{notifyAll} methods.
 
-Moving away from threads and shared memory, other concurrency models
-have been created. The most widespread involve message passing between
-strongly isolated processes --- so called because, unlike threads,
-they do not share memory. Hoare's Communicating Sequential Processes
-\cite{CSP} and Milner's Calculus of Communicating Systems \cite{CCS}
-are two formal models that use this idea. These models are mostly
-employed by functional programming languages such as Erlang, which
-allow no shared memory and in which all data is immutable. Concurrent
-programs in these languages can be simpler to write and debug, but
-often do not perform as well as programs written in more
-``traditional'' languages such as Java and C\texttt{++}.
+\paragraph{Message passing.} Moving away from threads and shared
+memory, other concurrency models have been created. The most
+widespread involve message passing between strongly isolated processes
+--- so called because, unlike threads, they do not share
+memory. Hoare's Communicating Sequential Processes \cite{CSP} and
+Milner's Calculus of Communicating Systems \cite{CCS} are two formal
+models that use this idea. These models are mostly employed by
+functional programming languages such as Erlang, which allow no shared
+memory and in which all data is immutable. Concurrent programs in
+these languages can be simpler to write and debug, but often do not
+perform as well as programs written in more ``traditional'' languages
+such as Java and C\texttt{++}.
 
-Yet another approach, and the focus of this dissertation, is
-Transactional Memory (TM) \cite{TMBook}. When using transactional
-memory, a programmer organises their code into transactions, similar
-to the transactions in the transactional model of databases. It is
-then up to the underlying TM implementation to provide atomicity and
-isolation of the transactions executed. That is, the memory operations
-of each transaction executed appear to occur atomically, and no
-transaction can see the results of a partial execution of any other
-transaction.
+\paragraph{Transactional memory.} Yet another approach, and the focus
+of this dissertation, is Transactional Memory (TM) \cite{TMBook}. When
+using transactional memory, a programmer organises their code into
+transactions, similar to the transactions in the transactional model
+of databases. It is then up to the underlying TM implementation to
+provide atomicity and isolation of the transactions executed. That is,
+the memory operations of each transaction executed appear to occur
+atomically, and no transaction can see the results of a partial
+execution of any other transaction.
+
+\subsection{Transactional memory}
+\label{sec:transactional-memory}
 
 Transactional memories provide a very simple interface to programmers:
 to write a correct concurrent program, place all parallel code that
@@ -413,8 +446,8 @@ same time. Attempting to solve this problem with locks would be fairly
 complex, involving either additional locks or exposing the internal
 locking logic of the concurrent queues. In a TM model, however, the
 solution is trivial: simply execute both operations in the same
-transaction.. This is discussed in more depth in Section \todo{include
-  section reference}.
+transaction.. This is discussed in more depth in Section
+\ref{sec:prep:techn-requ}.
 
 Transactional memories can be implemented in hardware or
 software. Hardware Transactional Memories (HTM) \todo{citation} are
@@ -428,14 +461,62 @@ flexible, but implementing them efficiently can be a
 challenge. Efficiency concerns with regards to STMs are so great that
 they have been called a ``research toy'' \cite{Toy}.
 
+\section{Golang}
+\label{sec:intro:golang}
+
+In this project I aim to implement an STM and evaluate its
+performance. I have chosen to do this in Go\footnote{\URL{golang.org}}
+because it is a language that emerged after the wave of research on
+STMs in the early 2000s, and so there is no exploration of how the
+language's features can be exploited to increase the applicability of
+STM approaches. Additionally, Go is designed with concurrency as a
+primary focus. In fact, one of the primary uses of Go has been to
+build server applications, and there is a growing environment of tools
+and libraries to support this. Examples are Docker and Kubernetes
+implementations, the etcd key-value store
+system\footnote{\URL{etcd.io}}, the Elasticsearch-Logstash-Kibana
+stack for logging\footnote{\URL{elastic.co/what-is/elk-stack}} and
+Prometheus for metric tracking\footnote{\URL{prometheus.io}}. One of
+my goals when choosing to use Go for this project was to eventually
+contribute to this environment, and make it easy for software
+engineers to build server applications using STM.
+
+% Go, sometimes referred to as Golang, is a language whose development
+% started in 2007 in Google, and which was released in 2012. Go was
+% designed with a focus on writing concurrent programs. Its
+% concurrency model is based on Hoare's CSP: multiple goroutines, Go's
+% version of coroutines, communicate through channels, which can be
+% blocking or buffered. Go also supports shared memory, as well as
+% locks and single-word atomic memory operations. The peculiarities of
+% Go and their implications on my project are discussed in Section
+% \ref{sec:prep:research}.
+
+\section{The STM chosen}
+\label{sec:stm-chosen}
+
+Although there has been substantial research on the topic of
+transactional memory, and many STMs have been implemented, there are
+few applications that actually use them. From a software engineering
+perspective, there are many possible reasons for this, such as
+adoption costs and little to no support of commonly used libraries. As
+one of my goals in choosing my project was to one day develop an STM
+that could be adopted in industry, it made sense to base my project on
+an existing STM with a real-world application. Such an STM is the Java
+Versioned Software Transactional Memory (JVSTM) \cite{jvstm}, which
+has been used in the FenixEDU project
+\cite{carvalho2008versioned}. Because my STM uses the same version
+box--based algorithm \cite{VBox} but is implemented in Go instead of
+Java, I have decided to name it Go Versioned Software Transactional
+Memory (GVSTM).
+
 \section{Evaluation and benchmarking}
 \label{sec:eval-benchm}
 
-As mentioned above, performance is a crucial factor in the evaluation
-of STMs. Although it has been shown that STM can largely outperform
-sequential code in multicore computers \cite{MoreThanToy}, it falls to
-each STM implementation to show that it is sufficiently efficient to
-be adopted. With that goal in mind, it is important for the success of
+Performance is a crucial factor in the evaluation of STMs. Although it
+has been shown that STMs can largely outperform sequential code in
+multicore computers \cite{MoreThanToy}, it falls to each STM
+implementation to show that it is sufficiently efficient to be
+adopted. With that goal in mind, it is important for the success of
 this project to demonstrate how the STM implemented performs when
 compared to alternatives, even if it does not outperform them.
 
@@ -446,7 +527,7 @@ benchmark, meaning that instead of performing a long series of simple
 transactions, such as reading and writing a handful of variables, it
 performs elaborate operations on complex data structures. A
 description of the benchmark and its data structures and operations
-can be found in Section \todo{include section reference}.
+can be found in Section \ref{sec:impl:stmbench7}.
 
 As of the start of this project, there is no Go implementation of
 STMBench7. This means that a considerable part of the work to be
@@ -457,261 +538,455 @@ proposal is to implement a subset of the original 45
 operations. Completing the implementation of the benchmark is an
 extension goal of the project.
 
-\section{The STM chosen}
-\label{sec:stm-chosen}
-
-Although there has been substantial research on the topic of
-transactional memory, and many STMs have been implemented, there are
-few applications that actually use them. From a software engineering
-perspective, there are many possible reasons for this, such as
-adoption costs and little to no support of commonly used
-libraries\todo{tentative, I don't actually know much about this}. One
-of my goals in choosing my project was to develop an STM that could be
-adopted in industry. This is, of course, a very ambitious objective
-for the scope of this project, and is not a goal of the project
-itself. Instead, I see this project as a starting point towards that
-goal, and the possibility of further development can serve as an
-aspect of evaluation.
-
-With this long-term goal in mind, it made sense to base my project on
-an existing STM with a real-world application. Such an STM is the Java
-Versioned Software Transactional Memory (JVSTM) \cite{jvstm}, which
-has been used in the FenixEDU project
-\cite{carvalho2008versioned}. Because my STM uses the same version
-box--based algorithm \cite{VBox} but is implemented in Go instead of
-Java, I have decided to name it Go Versioned Software Transactional
-Memory (GVSTM).
-
-\section{Golang}
-\label{sec:intro:golang}
-
-Go \cite{Go}, sometimes referred to as Golang, is a language whose
-development started in 2007 in Google, and which was released in
-2012. Go was designed with a focus on writing concurrent programs. Its
-concurrency model is based on Hoare's CSP: multiple goroutines, Go's
-version of coroutines, communicate through channels, which can be
-blocking or buffered. Go also supports shared memory, as well as locks
-and single-word atomic memory operations. The peculiarities of Go and
-their implications on my project are discussed in Section
-\todo{include section reference}.
-
-One of the primary uses of Go has been to build server applications,
-and there is a growing environment of tools and libraries to support
-this. Examples are Docker and Kubernetes implementations, the etcd
-key-value store system \cite{etcd}, the Elasticsearch-Logstash-Kibana
-stack for logging \cite{ELK} and Prometheus for metric tracking
-\cite{Prom}. One of my goals when choosing to use Go for this project
-was to eventually contribute to this environment, and make it easy for
-software engineers to build server applications using STM.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Preparation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{Preparation}
 
-I begin this chapter with an overview of my research and work
-completed before the start of the project. I then give an overview of
-the requirements of an STM, from both a technical perspective and one
-of producing a system that can be adopted in a software engineering
-environment. I give an overview of the research conducted to bridge
-the gap between my starting point and the desired outcome, and the
-impact of this research on the principal design decisions made. I
-conclude the chapter by describing my engineering methodology, as well
-as details of the hardware and software systems used.
+I begin this chapter with an overview of my relevant experience and
+work completed before the start of the project. I then describe the
+requirements of an STM, from both a functional perspective and one of
+producing a system that can be adopted in a software engineering
+environment. I give an overview of the research conducted to become
+familiar with the features of Go that had a significant impact on the
+design decisions of this project. In Section
+\ref{sec:design-decisions} I refer back to this overview. I conclude
+the chapter by describing my engineering methodology, as well as
+details of the hardware and software systems used.
 
 \section{Starting point}
 \label{sec:prep:starting-point}
 
-\paragraph{Experience with Go programming}
+Here I summarise knowledge relevant to the project that I acquired
+outside of the Computer Science Tripos. Within the Tripos, the courses
+most relevant to this project are Part IB Concurrent and Distributed
+Systems, which covers the basic shared memory synchronisation
+mechanisms, and the Multicore Semantics and Programming Unit of
+Assessment, which covers memory models and more advanced
+synchronisation mechanisms such as Transactional Memory.
 
-\paragraph{Knowledge of the STM algorithm}
+\paragraph{Experience with Go programming.} After Part IB of the
+Tripos I completed an internship with Improbable, where I learned Go
+and used it to build server applications using the microservice
+architecture. My experience with Go here was mostly using both
+internal and external libraries, and did not involve using Go's
+concurrency primitives explicitly.
 
-\paragraph{Prototype built for project proposal}
+\paragraph{Knowledge of the STM algorithm.} I was first introduced to
+the concept of Transactional Memory in the last concurrency lecture of
+the Part IB Concurrent and Distributed Systems course, which touched
+on a few topics. I was intrigued, so I spent some time reading about
+transactional memory, and about the JVSTM in particular. This gave me
+a good general understanding of the algorithm used, but I did not look
+into implementation specifics.
 
-\paragraph{Access to JVSTM and STMBench7 codebases}
+\paragraph{Prototype built for project proposal.} Before proposing
+this project to my supervisor I created a prototype of the GVSTM, to
+verify that the task I was setting out to do was feasible within the
+context of a Part II project. This prototype was just over one hundred
+lines of code and lacked some important features such as garbage
+collection of old versions. As discussed in Section
+\ref{sec:impl:garbage-collection}, this meant that a program using the
+GVSTM would quickly run out of memory.
+
+\paragraph{Access to JVSTM and STMBench7 codebases.} The JVSTM
+codebase is freely available in its GitHub
+repository\footnote{\URL{github.com/inesc-id-esw/jvstm}}. The
+STMBench7 benchmark is sadly no longer available at its
+homepage\footnote{\URL{dcl.epfl.ch/transactions/wiki/doku.php?id=stmbench7}},
+but it is available in the JVSTM benchmarks
+repository\footnote{\URL{github.com/inesc-id-esw/jvstm-benchmarks/tree/master/stmbench7}}.
 
 \section{Requirements analysis}
 \label{sec:requ-analys}
 
+The requirements of a transactional memory can be divided into
+functional and quality requirements. Functional requirements must be
+met for a TM to be classed as such and to provide correct
+synchronisation. Quality requirements should be met for a TM to be a
+viable alternative to other synchronisation mechanisms and to be
+adopted by software engineers. In this project I will make sure that
+the GVSTM meets the functional requirements. Attempting to ensure that
+it also meets quality requirements would involve extensive qualitative
+evaluation, such as surveying software engineers with experience
+programming using multiple concurrency models, and is far beyond the
+scope of this project. It should also be noted that TM has not been
+widely adopted in over a decade of research, and changing that would
+be an extraordinary achievement for an undergraduate project. That
+being said, it is still relevant to consider the quality requirements
+in my evaluation of the GVSTM, even though meeting them is not a
+priority in the project.
+
 \subsection{Functional requirements}
 \label{sec:prep:techn-requ}
 
-\paragraph{Reading and writing transactional variables} This is the
-minimum requirement for an STM. How to handle more complex behaviour
-such as exceptions and I/O is an interesting subject, but beyond the
-scope of this implementation. \note{Actually, ``exceptions'' in Go are
-  passed around as values. If I have space I could talk about
-  this. Could also talk about representing I/O as monads by using Go's
-  support for functions as first class citizens, and say how that
-  could be a great source for future work.}
+\paragraph{ACID properties.} Any transactional memory must provide
+Atomicity, Consistency and Isolation according to the ACID properties
+of the database transactional model. Atomicity guarantees that each
+transaction either commits or aborts fully --- no transaction may
+conclude with only some of its memory operations successfully
+executed. Consistency guarantees that the result of executing a
+transaction on a consistent view of the program will result in a
+consistent view of the program. Isolation can be provided to varying
+degrees. In the context of the ACID properties, isolation guarantees
+that no committed transaction may have seen the results of a partial
+execution of another transaction. Durability concerns the resilience
+of committed transactions to system failures, often by using
+non-volatile storage. Because TM operates only in main memory
+durability is not usually a concern.
 
-\paragraph{Composability}
+\paragraph{Opacity.} In practice, modern transactional memories are
+expected to make stronger guarantees than those provided by the ACID
+properties. Opacity \cite{Opacity} is widely regarded as the
+correctness property to be achieved by TMs, and is stronger than
+properties imported from the area of database concurrency control such
+as serialisability and strict serialisability
+\cite{Serialisability}. In summary, opacity strengthens the isolation
+condition so that no transaction, including aborted and in-flight
+transactions, can access inconsistent states. The GVSTM provides
+opacity by only allowing each transaction to access the state
+consistent with its read timestamp --- see Section
+\ref{sec:impl:vers-data-struct}.
+
+\paragraph{Reading and writing transactional variables.} In the
+general case, a transactional memory could provide the properties
+above to many kinds of operations, such as I/O and, in the case of Go,
+channel communication. Providing such a general solution from scratch,
+in addition to implementing a benchmark to meaningfully evaluate it,
+would be far beyond the scope of an undergraduate project. As such, I
+decided to focus on implementing an STM that provides the properties
+above only to reads and writes of transactional variables. Section
+\ref{sec:impl:extensions} briefly discusses how the GVSTM could be
+extended to handle arbitrary operations transactionally. There is,
+however, a case to be made against using different concurrency models
+such as TM and channel communication in the same program.
+
+\paragraph{Composability.} One of the most appealing features of STM
+when compared to other synchronisation mechanisms is the ease of
+composition of transactions. As shown in Listing
+\ref{lst:composability}, given transactional methods to add and remove
+an element from a queue, a transactional method to move an element
+from one queue to another is trivial, as is the creation of an atomic
+version of said method.
+
+\begin{Listing}[hbtp]
+\begin{lstlisting}
+func transactionalEnqueue(queue Q, element E) {...}
+
+func transactionalDequeue(queue Q) E {...}
+
+func transactionalMove(queueOne, queueTwo Q) {
+    element := transactionalDequeue(queueOne)
+    transactionalEnqueue(queueTwo, element)
+}
+
+func atomicMove(queueOne, queueTwo Q) {
+    Atomic(func() {
+        transactionalMove(queueOne, queueTwo)
+    })
+}
+\end{lstlisting}
+
+  \mycaption{Composability.}{The pseudocode presented here uses syntax
+    similar to that of Go, but does not obey the syntax of
+    transactional methods defined later in this dissertation.}
+  \label{lst:composability}
+\end{Listing}
 
 
 \subsection{Quality requirements}
 \label{sec:prep:usab-requ}
 
-\paragraph{Performance} Talk about possible SLA's a user of an STM may
-care about, such as total throughput and max TTC for particular
-operations.
+\paragraph{Performance.} One of the principal concerns of STM
+designers is performance. Depending on the algorithm used, it may be
+necessary to keep large read- and write-sets (see section
+\ref{sec:impl:read-sets-write}) or perform complex conflict detection
+operations, which may introduce significant overheads. For software
+engineers to choose to adopt an STM it must demonstrate that its
+performance is at least comparable to that of other solutions, in
+addition to simplifying the programming model used. Performance may
+have different meanings in different applications:
+\begin{itemize}
+\item Some applications may require an upper bound on the latency of
+  any operation.
+\item Some applications may prefer to minimise the latency of read
+  operations at the cost of increasing the latency of write
+  operations.
+\item Some applications may try to ensure maximal throughput, while
+  giving no guarantees on the performance of individual operations.
+\end{itemize}
 
-\paragraph{Usability} How much easier is it to use the STM than it is
-to design an algorithm using locks?
+Of the three examples above, the first is likely to occur in real-time
+applications, such as frequency trading or security-critical
+applications. Transactional memory is unlikely to be a sensible
+solution in these cases. The latter two examples are more likely to
+occur in server applications, in which STM is much more promising. The
+GVSTM in particular is heavily read-optimised, and guarantees
+low-latency read-only operations regardless of the presence of
+write-operations. This is discussed in Section
+\ref{sec:impl:read-only-trans}.
 
-\section{Research --- features of Go}
+\paragraph{Usability.} As discussed in Section \ref{sec:problem},
+synchronisation using locks is problematic for a number of
+reasons. Programming using an STM should not only make it easier to
+write correct concurrent programs, but also be easy and intuitive to
+use and shorten iteration times for software engineers. Short of
+surveying a large number of software engineers with experience
+programming using multiple concurrency models, an evaluation of
+usability will be somewhat subjective. In Section
+\ref{sec:eval:impl-stmb} I give an account of my own experience using
+the GVSTM and locking approaches to program parts of STMBench7.
+
+\section{Preliminary research --- features of Go}
 \label{sec:prep:research}
 \todo{Find a better section title.}
 
-In this section I introduce some Go concepts that are likely to be new
-to people unfamiliar with the language and summarise the key
-differences between Go and Java that influenced the design decisions
-in my project. In this section I will heavily refer to the Go language
-specification, which can be found at
-\href{https://golang.org/ref/spec}{golang.org/ref/spec}, and its
-memory model, at
-\href{https://golang.org/ref/mem}{golang.org/ref/mem}.
-
-\subsection{Goroutines}
-\label{sec:prep:goroutines}
-
-Essentially light-weight threads.
-
-\subsection{Locks in Go}
-\label{sec:prep:locks-go}
-
-Read-write locks, not reentrant.
+Part of the research necessary to complete this project was to become
+familiar with features of Go that are essential to the implementation
+of an STM and of a benchmark that is itself a significant software
+project. In this section I summarise these features, focusing on where
+they differ from Java's, the language originally used to implement the
+JVSTM and STMBench7. I will include small code examples, and I
+recommend that those unfamiliar with Go read this section. More detail
+on these topics can be found in Go's
+specification\footnote{\URL{golang.org/ref/spec}} and memory
+model\footnote{\URL{golang.org/ref/mem}}.
 
 \subsection{Polymorphism}
 \label{sec:prep:polymorphism}
 
 Go, at the time of writing (version 1.14), does not offer generic
-programming, but supports polymorphism in the form of interfaces.
+programming, but supports polymorphism in the form of interface
+types. Interface types declare a set of methods --- an interface. Any
+type that implements a superset of the methods of an interface is said
+to implement the corresponding interface type, and can be taken at
+runtime to be of the interface type. See Listing
+\ref{lst:interfaceTypes} for an example.
 
-Interfaces are sets of methods. Any type that implements all methods
-of an interface implements the interface --- duck typing. The empty
-interface is implemented by all types, so it can be used to represent
-any type.
+A particularly interesting interface type is the empty
+interface. Because its method set is empty, all types implement
+it. This makes it useful for implementing libraries that must support
+operations on arbitrary types, because it allows the creation of a
+single method that supports all types instead of having distinct
+methods for each type. Compared to generic programming this has the
+disadvantage of requiring users to explicitly cast values to the
+particular types they expect said values to have. This is cumbersome
+but, sadly, the best solution available in Go at the moment.
+
+\begin{Listing}[hbtp]
+\begin{lstlisting}
+type bird interface {
+    eat()
+}
+
+type duck interface {
+    walk()
+    quack() string
+}
+
+type mallard struct {...}
+
+func (m mallard) eat() {...}
+
+func (m mallard) walk() {...}
+
+func (m mallard) quack() string {...}
+
+type barnacle struct {...}
+
+func (b barnacle) eat() {...}
+
+func (b barnacle) honk() string {...}
+\end{lstlisting}
+
+  \mycaption{Interface types.}{Type \goType{mallard} implements
+    \goType{duck} and \goType{bird}. Type \goType{barnacle} implements
+    \goType{bird} but not \goType{duck}. Both concrete types implement
+    the empty interface \goType{interface\string{\string}}.}
+  \label{lst:interfaceTypes}
+\end{Listing}
+
 
 \subsection{Object semantics}
 \label{sec:prep:oop}
 
-Object semantics are useful. Go is not Object oriented, but object
-semantics can be achieved by using the interface pattern.
+Function arguments in Go are passed by value, including method
+receivers. This means that in the example in Listing
+\ref{lst:interfaceTypes}, each time a method of the \goType{mallard}
+type is called, a copy of the struct is made. If the method changes
+some fields of the struct the value held by the parent is
+unchanged. In large software projects, and indeed ones ported from an
+object oriented language, it is useful to have the concept of an
+object, in which updates on an object made by one part of the program
+can be seen by other parts.
 
-\subsection{Thread local memory}
-\label{sec:prep:thread-locals}
-
-There is a way to find the goroutine ID, which involves using cgo to
-call a C function. This could be used to implement ``goroutine-local''
-variables. When I looked into this it seemed to be no longer possible
---- as of Go 1.5 the runtime and the compiler are written in Go and
-not C. However it seems that since then there has been increasing
-technical support of cgo. It is still very frowned upon to use it
-though.
-
-https://github.com/golang/go/issues/22770
-
-https://blog.sgmansfield.com/2015/12/goroutine-ids/
-
-Talk about the transaction objects and the assembly level locks to
-acquire in the MG locking approach.
+To get such semantics in Go, it suffices to change the receiver type
+of methods to a pointer type. This means that instead of type
+\goType{mallard} implementing interface type \goType{duck}, pointer
+type \goType{*mallard} implements interface type \goType{duck}. This
+is, in practice, more common in Go, and can be seen for example with
+the implementations of the \goType{sync.Locker} interface type, which
+is the interface implemented by locks.
 
 \subsection{Errors and panics}
 \label{sec:prep:panics-errors}
 
-Make the parallel between Go's errors and Java's checked exceptions,
-Go's panics and Java's unchecked exceptions.
+For the sake of brevity, I will assume the reader is comfortable with
+Java's exceptions, and with the distinction between checked and
+unchecked exceptions. Because exceptions can alter the flow of
+execution, they raise some questions with STM implementations:
+
+\begin{itemize}
+\item If a transaction causes an exception, should it commit or abort?
+\item If the former, will the transaction maintain the consistency
+  property mentioned in Section \ref{sec:prep:techn-requ}?
+\item If the latter, will the condition that caused the exception
+  still hold and be reproducible?
+\item Should a transaction be able to raise an exception due to seeing
+  an inconsistent state?
+\end{itemize}
+
+Go does not support Java-style exceptions. Instead, it has the
+\goType{error} type and the \goFunc{panic} functions. As a short
+summary, Go's \goType{error}'s are ordinary values that can be
+manipulated, passed as arguments and returned by functions. They are
+analogous to Java's checked exceptions --- it is expected that the
+caller of a function that returns an \goType{error} will check that
+error in \goValue{nil}. A call to \goFunc{panic} is analogous to an
+unchecked exception, and should only be used in a Go program when
+something has gone unexpectedly wrong and the program should
+terminate.
+
+\todo{This section doesn't read very well. Could make a \textbackslash
+  description with error and panic? Also don't forget to ref the
+  listing.}
+
+\begin{Listing}[hbtp]
+\begin{lstlisting}
+func main() {
+    _, err := os.Create("/file/path")
+    if err != nil {
+        panic(err)
+    }
+    // Calculate results and write to file
+}
+\end{lstlisting}
+
+  \mycaption{\goType{error} and \goFunc{panic}.}{In this case failure
+    to create the file is sufficiently unexpected that we want the
+    program to terminate.}
+  \label{lst:interfaceTypes}
+\end{Listing}
+
+\subsection{Goroutines}
+\label{sec:prep:goroutines}
+
+Go supports goroutines, which are essentially light-weight threads. I
+assume that the reader is familiar with threads, so instead of
+explaining goroutines from scratch I will describe the main aspects in
+which they differ from threads and that are relevant to this project:
+
+\begin{itemize}
+\item The only memory associated with a goroutine is its dynamically
+  sized call stack. This is a lot cheaper than threads in Java, which
+  have a large, fixed-size stack and associated objects holding state
+  such as Thread ID and thread-local storage --- see Section
+  \ref{sec:prep:thread-locals}.
+\item Goroutines are anonymous. Go does not have a representation of a
+  running goroutine analogous to Java's \javaClass{Thread} objects,
+  and it is not possible in Go to stop or resume one goroutine from
+  another.
+\item Goroutines are multiplexed onto OS threads by the Go
+  runtime. Because goroutines are so cheap to create and run, it is
+  often practical to have very large numbers of goroutines running
+  concurrently, even if the number of available processors and OS
+  threads is small.
+\end{itemize}
+
+\subsection{Thread-local storage}
+\label{sec:prep:thread-locals}
+
+Java supports thread-local storage. As the name suggests, this is
+storage that holds variables that differ between threads. Because in
+an STM each transaction is running in its own thread, thread-local
+storage can be used to keep any bookkeeping necessary by the
+transaction. As an example, the JVSTM uses Java's
+\javaClass{ThreadLocal}'s to keep the read- and write-sets necessary
+to validate and commit read-write transactions --- see Section
+\ref{sec:impl:read-sets-write}.
+
+As mentioned in Section \ref{sec:prep:goroutines}, goroutines are much
+more light-weight than Java's threads, and do not support thread-local
+storage. When I started this project, I spent some time researching
+ways to implement thread-locals. Thread-locals can be implemented by
+using a thread ID, or in this case goroutine ID, as an index in a map
+of ID to the corresponding thread-local state. However, as described
+in Section \ref{sec:prep:goroutines}, goroutines are anonymous, and
+there is not an appropriate way of determining the ID of a goroutine
+--- the only ways are inefficient, ``hacky'' and generally frowned
+upon\footnotemark.  \footnotetext{A brief, entertaining overview of
+  this can be found at
+  \URL{blog.sgmansfield.com/2015/12/goroutine-ids}}
+
+\subsection{Locks in Go}
+\label{sec:prep:locks-go}
+
+Go's locks can be found in the \goCode{sync} package, and implement
+the \goType{Locker} interface. The use of locks in this project is
+restricted to the locking synchronisation approaches in STMBench7, but
+it is worth noting that like Java, Go offers read-write locks, but
+unlike Java, it does not offer reentrant locks as a consequence of the
+light-weight support of goroutines.
 
 \subsection{Memory model}
 \label{sec:prep:memory-model}
 
-When trying to fix a race between populating a body and updating the
-corresponding box, I ran into a question of what the memory model says
-(or more accurately, doesn't say) about the guarantees given by the
-LoadPointer and StorePointer functions.
+Go's memory model defines a happens-before relationship between
+synchronisation operations, similarly to Java's memory model. In Go,
+the synchronisation operations are fewer: they mostly concern lock
+acquisition, the creation of goroutines and channel communication. The
+memory model lacks guarantees on shared memory accesses analogous to
+the guarantees provided by Java's \javaCode{volatile} and
+\javaCode{final} variables, on which the JVSTM relies to provide
+synchronisation in a lighter-weight fashion than using locks.
 
-Neither the model or implementation says anything meaningful about
-these functions (only that they are atomic). It also doesn't say much
-about the Value Load and Store functions, but the documentation has an
-example that seems to assume that the semantics of the Value functions
-are what I need them to be.
-
-\todo{It is worth checking, if I have time, whether changing
-  Value/Load/Store for unsafe.Pointer/LoadPointer/StorePointer gives
-  any performance improvements while maintaining correctness.}
-
-\subsection{Summary of key differences between Go and Java}
-\label{sec:prep:summ-key-diff}
-
-Have a table of features present in each language.
-
-\section{Design decisions}
-\label{sec:prep:design-decisions}
-
-\subsection{Typing}
-\label{sec:prep:typing}
-
-Because Go does not offer generic programming, a user of the library
-must use type casting when reading values from a transactional
-variable. The return type of loads and the argument type of stores is
-the empty interface.
-
-\subsection{The \goFunc{Atomic} function}
-\label{sec:prep:atomic-function}
-
-All reads and writes of TVars that occur inside a call to Atomic
-appear to occur atomically and in isolation from other transactions.
-
-\subsection{Explicit transaction objects}
-\label{sec:prep:expl-trans-objects}
-
-Because there are no thread-locals, transaction context must be passed
-around explicitly.
-
-\subsection{The ``transactional'' property}
-\label{sec:prep:cont-trans-prop}
-
-Because transaction objects need to be passed around explicitly, and
-because they are required to access a TVar, we can define
-transactional functions inductively as:
-
-\begin{enumerate}
-\item A function is transactional if it reads or writes a TVAr.
-\item A function is transactional if it calls a transactional function
-  without surrounding said call in a call to Atomic.
-\end{enumerate}
-
-\subsection{Aborts using panics}
-\label{sec:prep:aborts-using-panics}
-
-The user should not be aware of the inner workings of the STM, or
-necessarily care that there is an internal distinction between
-read-only and read-write transactions. The only way to immediately
-abort a transaction without the user programming for it is to use a
-panic.
-
-\subsection{The interface pattern in STMBench7}
-\label{sec:prep:interf-patt-stmb}
-
-I want object semantics pretty much everywhere in STMBench7, so the
-interface pattern is extensively used, even if some interfaces have
-only one implementation.
+Go's memory model lacks the formal semantics of more mature languages
+\todo{Should probably cite some of Peter Sewell's work here. What
+  would be a good paper to cite?}. That being said, the documentation
+of the \goCode{sync/atomic} package seems to assume that its
+operations have similar semantics to those of Java's
+\javaCode{volatile} variables.
 
 \section{Engineering methodology}
 \label{sec:engin-meth}
 
-\paragraph{Version control}
+\paragraph{Version control and backup policy.} I kept the source code
+of my project in a Git repository publicly available on my GitHub
+profile. The \LaTeX and accompanying source files of this dissertation
+are in a private Git repository. In addition to the repositories
+hosted on GitHub and the clones on my local machine, I kept a backup
+of the contents of my local machine in an external disk, which I
+updated weekly.
 
-\paragraph{Backup policy}
+\paragraph{Test-driven development.} One of the lessons most ingrained
+in me during my internship with Improbable was the benefit of using
+test-driven development in software projects. However, because this
+project involved designing an interface that was subject to change, it
+made more sense to complete the implementation of the STM before
+writing tests for it. During the implementation of STMBench7, the data
+structure invariant tests were written as soon as possible to catch
+any possible bugs early.
 
-\paragraph{Test-driven development}
-Why was this not a good approach for this project?
+\paragraph{Tools.} I used the GoLand IDE to write, test and benchmark
+my code. This dissertation was written using a \LaTeX package for
+Emacs.  \todo{I should run go lint on the codebase.}
 
-\paragraph{Linting}
-\todo{I should run go lint on the codebase.}
-
-\paragraph{Versions and licenses}
+\paragraph{Versions and licenses.} I wrote my project using Go version
+1.12. My implementation of the GVSTM is based on the original
+description of the algorithm \cite{cachopo2007phd}. My implementation
+of STMBench7 is based on the Java source code of the benchmark,
+version 1.2, licensed under \todo{figure out what that license is...}
 
 
 
@@ -725,6 +1000,59 @@ In this chapter I will describe the implementation of both the GVSTM
 and STMBench7, as well as the data structures and algorithms
 involved. At the end of the chapter I include an overview of the
 repository, for the interested reader to use as reference.
+
+\section{Design decisions}
+\label{sec:design-decisions}
+
+\subsection{Typing}
+\label{sec:typing}
+
+Because Go does not offer generic programming, a user of the library
+must use type casting when reading values from a transactional
+variable. The return type of loads and the argument type of stores is
+the empty interface.
+
+\subsection{The \goFunc{Atomic} function}
+\label{sec:atomic-function}
+
+All reads and writes of transactional variables that occur inside a
+call to Atomic appear to occur atomically and in isolation from other
+transactions.
+
+\subsection{Explicit transaction objects}
+\label{sec:expl-trans-objects}
+
+Because there are no thread-locals, transaction context must be passed
+around explicitly.
+
+\subsection{The ``transactional'' property}
+\label{sec:cont-trans-prop}
+
+Because transaction objects need to be passed around explicitly, and
+because they are required to access a TVar, we can define
+transactional functions inductively as:
+
+\begin{enumerate}
+\item A function is transactional if it reads or writes a TVAr.
+\item A function is transactional if it calls a transactional function
+  without surrounding said call in a call to Atomic.
+\end{enumerate}
+
+\subsection{Aborts using panics}
+\label{sec:aborts-using-panics}
+
+The user should not be aware of the inner workings of the STM, or
+necessarily care that there is an internal distinction between
+read-only and read-write transactions. The only way to immediately
+abort a transaction without the user programming for it is to use a
+panic.
+
+\subsection{The interface pattern in STMBench7}
+\label{sec:interf-patt-stmb}
+
+I want object semantics pretty much everywhere in STMBench7, so the
+interface pattern is extensively used, even if some interfaces have
+only one implementation.
 
 \section{GVSTM}
 \label{sec:impl:gvstm}
@@ -791,6 +1119,9 @@ flat nesting.
 \subsection{Garbage collection}
 \label{sec:impl:garbage-collection}
 
+\todo{Change title to something that makes it explicit this isn't
+  general purpose GC. Something like GC of old versions.}
+
 This is a requirement because versioned data structures keep a
 history. The history needs to be truncated or else the program runs
 out of memory.
@@ -805,13 +1136,13 @@ of them, so I would not be able to meaningfully evaluate
 them. Nevertheless, these features increase the expressivity of STM
 and could be implemented in future work.
 
-\subsubsection{Abort and retry semantics}
+\paragraph{Abort and retry semantics.}
 \label{sec:impl:abort-retry-semant}
 
-\subsubsection{Different nesting semantics}
+\paragraph{Different nesting semantics.}
 \label{sec:impl:diff-nest-semant}
 
-\subsubsection{Side effects as monads}
+\paragraph{Side effects as monads.}
 \label{sec:impl:side-effects-as}
 
 The GVSTM only deals with access to transactional variables. If a
@@ -852,16 +1183,16 @@ composite parts.This means that when looking at benchmark results it
 makes sense to look at the total throughput and not only at the
 throughput of successful operations.
 
-\subsubsection{Long traversals}
+\paragraph{Long traversals.}
 \label{sec:impl:long-traversals}
 
-\subsubsection{Short traversals}
+\paragraph{Short traversals.}
 \label{sec:impl:short-traversals}
 
-\subsubsection{Short operations}
+\paragraph{Short operations.}
 \label{sec:impl:short-operations}
 
-\subsubsection{Structure modification operations}
+\paragraph{Structure modification operations.}
 \label{sec:impl:struct-modif-oper}
 
 \subsection{Design patterns}
@@ -873,10 +1204,10 @@ throughput of successful operations.
   extend and gives me a lot to write about in my dissertation. I could
   use this as a demonstration of CS/SWE knowledge.}
 
-\paragraph{Factory method}
+\paragraph{Factory method.}
 There is a factory method for pretty much every type.
 
-\paragraph{Abstract Factory}
+\paragraph{Abstract Factory.}
 There are three abstract factories:
 
 \begin{description}
@@ -896,21 +1227,21 @@ There are three abstract factories:
 
 Bonus: the factories are singletons!
 
-\paragraph{Builder}
+\paragraph{Builder.}
 
 Builders are used to create and destroy the data structures, and
 encapsulate the indexing of the objects in their respective indexes
 and the creation of components, such as a document for composite
 parts, children assemblies for a complex assembly, etc.
 
-\paragraph{Executor}
+\paragraph{Executor.}
 
 Executors are somewhat like the command pattern I believe?
 
 \subsection{Testing}
 \label{sec:impl:testing}
 
-\subsubsection{Invariant testing}
+\paragraph{Invariant testing}
 \label{sec:impl:invariant-testing}
 
 Checking that some application level invariants on the data structures
@@ -922,7 +1253,7 @@ structure implementations and in some other places where I made silly
 mistakes (eg. not checking for null value before casting, using
 strings.HasSuffix instead of strings.HasPrefix).
 
-\subsubsection{Opacity testing}
+\paragraph{Opacity testing}
 \label{sec:impl:opacity-testing}
 
 Checking that the parallel execution is equivalent to a sequential
@@ -944,24 +1275,24 @@ things. Good software engineering practice, huh?
 \subsection{Extensions}
 \label{sec:impl:possible-extensions}
 
-\paragraph{Implementing all 45 operations}
+\paragraph{Implementing all 45 operations.}
 DONE: implement all the operations, instead of just a subset.
 
-\paragraph{Efficient backend data structures}
+\paragraph{Efficient backend data structures.}
 
 Make more efficient backend data structure implementations and see how
 the performance changes.
 
-\paragraph{Command line interface}
+\paragraph{Command line interface.}
 
 Turn the benchmark into a proper CLI command, to make running it
 easier.
 
-\paragraph{Containerising}
+\paragraph{Containerising.}
 Make a Docker container with the benchmark, to be run on an AWS
 instance with many more cores.
 
-\paragraph{Rewrite the benchmark to be fairer}
+\paragraph{Rewrite the benchmark to be fairer.}
 The method to create and register a complex assembly is unfair to
 STMs: if the ID pool for either complex or base assemblies is
 exhausted the method undoes all its work. This involves a lot of
@@ -1012,18 +1343,28 @@ scenarios.
 \section{Success criteria}
 \label{sec:eval:success-criteria}
 
+\todo{Make sure to talk about testing.}
 
 \section{Benchmark results}
 \label{sec:eval:benchmark-results}
 
+\todo{Talk bout engineering methodology, including
+  \begin{itemize}
+  \item Making sure ratio of failed operations is similar, so that
+    results are not skewed.
+  \item Benchmark run duration.
+  \item Discarding outliers.
+  \end{itemize}
+}
+
 \subsection{Metrics}
 \label{sec:eval:metrics}
 
-\paragraph{Total throughput}
+\paragraph{Total throughput.}
 
 \paragraph{Maximum time to completion}
 
-\paragraph{Time to completion histograms}
+\paragraph{Time to completion histograms.}
 May be interesting to show some histograms of TTC for some operation
 types, but that may take up a lot of space. Could keep that in an
 appendix.
@@ -1040,16 +1381,16 @@ order of magnitude for all synchronisation approaches.
 \subsection{Workloads}
 \label{sec:impl:workloads}
 
-\subsubsection{Read-only workload}
+\paragraph{Read-only workload.}
 \label{sec:impl:read-only-workload}
 
-\subsubsection{Read-dominated workload}
+\paragraph{Read-dominated workload.}
 \label{sec:eval:read-domin-workl}
 
-\subsubsection{Read-write workload}
+\paragraph{Read-write workload.}
 \label{sec:impl:read-write-workload}
 
-\subsubsection{Write-dominated workload}
+\paragraph{Write-dominated workload.}
 \label{sec:eval:write-domin-workl}
 
 
@@ -1066,6 +1407,9 @@ with their users.
 \section{Ease of use}
 \label{sec:eval:ease-use}
 
+\note{Due to the scope of this project, I couldn't do a usability
+  study, so this is drawn from my own experience.}
+
 \subsection{Implementing STMBench7}
 \label{sec:eval:impl-stmb}
 
@@ -1076,8 +1420,23 @@ How easy it was to implement the executors:
   call to Atomic.
 \item The CG locking executor uses global read-write locks. When
   creating an executor for an operation, it determines whether it is
-  read-only or read-write, which is baked into the program, and then
-  acquires the appropriate lock before executing.
+  read-only or read-write, and then acquires the appropriate lock
+  before executing. Whether an operation is read-only or read-write is
+  specified by the programmer, which has several problems:
+  \begin{itemize}
+  \item The approach does not allow the classification of arbitrary
+    transactions that are not known at compile time. The GVSTM
+    interface does not distinguish between RO and RW transactions and
+    deals with that under the hood.
+  \item Some transactions may perform some write operations in some
+    executions but not others. Correct synchronisation would require
+    these transactions to be classified as RW, which would make them
+    perform worse than necessary when they happen to be RO.
+  \item If someone misclassifies an operation as read-only, probably
+    nothing fails in the program, but the results will be wrong
+    because operations stop being atomic.
+  \end{itemize}
+
 \item The MG locking is much more complicated. It has read-write locks
   for each of several types of structures, as well as one read-write
   lock for each level of assemblies. I spent an afternoon fixing
