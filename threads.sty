@@ -1,0 +1,250 @@
+
+\pgfdeclarelayer{background}
+\pgfsetlayers{background,main}
+
+\newcommand{\resultcolor}{black!10}
+\newcommand{\timeinstcolor}{lightgray}
+\newcommand{\waitcolor}{black!15}
+
+
+\newcommand{\methReturns}[1]{\tikz \draw[->] (0,0) -- +(right:0.2cm) node[right,outer sep=2pt,inner sep=1pt,fill=\resultcolor] {\texttt{#1}};}
+
+\newcommand{\makeTimeline}[1]{
+  \draw ([yshift=-1cm] current bounding box.south west) coordinate(origTime);
+  \draw ([yshift=0.5cm] current bounding box.north east) coordinate(upLeft);
+
+  \draw[->,very thick] (origTime) -- ([xshift=0.5cm] origTime -| upLeft)
+                       node[above right,at start] {Time};
+
+  \ifx.#1 \empty\else
+  \begin{pgfonlayer}{background}
+    \foreach \name/\pos in {#1} {
+      \draw[loosely dashed,color=\timeinstcolor]
+              ([yshift=-0.2cm] origTime -| \pos,0) -- ([yshift=0.5cm] \pos,0 |- upLeft)
+              node[below,at start,text=black] (\name) {\textit{\name}};
+    }
+  \end{pgfonlayer}\fi
+}
+
+
+\newcommand{\methodBar}[2]{
+  \draw[fill=white] (#1,-0.25) rectangle (#2,0.25);
+}
+
+\newcommand{\methodExec}[4][]{
+  \methodBar{#3}{#4}
+  \draw (#3,0)  node[left]  {\texttt{#2}};
+  \draw (#4,0)  node[right] {\texttt{#1}};
+}
+\newcommand{\waits}[2]{
+  \draw[fill=\waitcolor,dashed] (#1,-0.25) rectangle (#2,0.25);
+}
+
+\newcommand{\subOp}[4][0.5cm]{
+  \methodBar{#2}{#3}
+  \path (#2,-0.25) -- coordinate(op) (#3,-0.25);
+  \path (op) -- +(down:#1) node[inner sep=0pt] (op2) {\texttt{#4\strut}};
+  \draw[->] (op2) -- (op);
+}
+
+\newcommand{\markOp}[3][0.5cm]{
+  \path (#2,-0.25) -- +(down:#1) node[inner sep=0pt] (op) {\texttt{#3\strut}};
+  \draw[->] (op) -- (#2,-0.25);  
+}
+
+\newenvironment{markAbove}{\begin{scope}[yscale=-1]}{\end{scope}}
+
+\newenvironment{subOpsBelow}{\begin{scope}[yshift=-0.1cm]}{\end{scope}}
+\newenvironment{subOpsAbove}{\begin{scope}[yscale=-1]\begin{subOpsBelow}}{\end{subOpsBelow}\end{scope}}
+
+
+
+\newcommand{\showObjs}[2]{
+  \draw (#1.south) node[below,fill=\resultcolor] {
+    \begin{tikzpicture}
+      \draw (0,0) coordinate(prev);
+      \foreach \name/\value in {#2}
+        \draw (prev.south west) node[below left,yshift=-2pt]              {\texttt{\name}}
+                                node[below right,draw,yshift=-2pt] (prev) {\texttt{\value}};
+    \end{tikzpicture}
+  };
+}
+
+\newcommand{\showVersBoxes}[2]{
+  \draw (#1.south) node[below,fill=\resultcolor] {
+    \begin{tikzpicture}
+      \draw (0,0) coordinate(prev);
+      \foreach \value in {#2}
+        \draw (prev.south west) node[below right,yshift=-2pt] (prev) {\value};
+    \end{tikzpicture}
+  };
+}
+
+
+
+\newcommand{\versBox}[2]{
+  \begin{tikzpicture}
+    \tikzstyle{every rectangle node}=[outer sep=0pt]
+    \draw (0,0) node[draw] (prev) {\texttt{#1}};
+    \foreach \value/\version in {#2} {
+      \draw (prev.south west) node[draw,below right,minimum height=2ex,minimum width=2cm] (prev) {\texttt{\strut\value}};
+      \draw (prev.south east) node[above left] {\tiny\version};
+    }
+  \end{tikzpicture}
+}
+
+\newcommand{\commitcolor}{black}
+\newcommand{\txNumberFont}{\ttfamily\bfseries\small}
+\newcommand{\txidcolor}{black!10}
+
+\newcommand{\writeTx}[7][]{
+  \methodExec[#1]{#2}{#3}{#5}
+  \draw[fill=\commitcolor] (#4,-0.25) rectangle (#5,0.25);
+  \draw (#3,0) node[right] {\txNumberFont #6};
+  \draw (#5,0) node[text=white,left] {\txNumberFont #7};
+}
+
+\newcommand{\readTx}[5][]{
+  \methodExec[#1]{#2}{#3}{#4}
+  \draw (#3,0) node[right] {\txNumberFont #5};
+}
+
+\newcommand{\abortedTx}[5][]{
+  \readTx[#1]{#2}{#3}{#4}{#5}
+  \abortTx{#4}{black}
+}
+
+\newcommand{\failedTx}[7][]{
+  \writeTx[#1]{#2}{#3}{#4}{#5}{#6}{}
+  \abortTx{#5}{white}
+}
+
+
+\newcommand{\abortTx}[2]{
+  \draw[thick,color=#2] ([xshift=-0.1cm] #1,-0.15) -- +(-0.3,0.3);
+  \draw[thick,color=#2] ([xshift=-0.1cm] #1,0.15) -- +(-0.3,-0.3);
+}
+
+\newcommand{\txId}[1]{\tikz[baseline] \draw (0,0) node[fill=\txidcolor,inner sep=1pt,anchor=text] {\txNumberFont #1};}
+
+
+%% ==================================================
+%% commands to draw instances of VBox and VBoxBody
+%%
+
+\newcommand{\objslotfont}{\fontsize{8}{9}\ttfamily}
+\newcommand{\objslotwidth}{\widthof{\objslotfont version: 99}}
+\newcommand{\vboxbodyslot}[1]{\makebox[\objslotwidth][l]{\strut\objslotfont #1}}
+\newcommand{\nextSlotWidth}{\widthof{\objslotfont next:}}
+\newcommand{\bodySlotWidth}{\widthof{\objslotfont body:}}
+
+\newcommand{\vboxbody}[5]{
+  node[anchor=#1,inner sep=0pt,outer sep=0pt] (#2) {
+    \begin{tikzpicture}[baseline]
+      \tikzstyle{every node}=[draw,outer sep=0pt,inner xsep=3pt]
+      \draw 
+      (0,0)             node[anchor=mid]  (prev)     {\vboxbodyslot{next: #3}}
+      (prev.south west) node[below right] (prev)     {\vboxbodyslot{value: #4}}
+      (prev.south west) node[below right] (prev)     {\vboxbodyslot{version: #5}};
+    \end{tikzpicture}
+  }
+  (#2.base west)        node[outer sep=0pt,inner xsep=3pt,anchor=base west] (nextSlot) {\makebox[\nextSlotWidth]{\strut}}
+  (nextSlot.base east)  coordinate(#2linkOrig)
+}
+
+\newcommand{\drawVBox}[2]{
+  \draw (0,0) node[draw,anchor=mid east,outer sep=0pt] (#1) {\objslotfont \strut{}body:~~} +(right:1cm) coordinate(next);
+  \draw (#1.mid west) node[anchor=mid west] (bodySlot) {\makebox[\bodySlotWidth]{\strut}}
+        (bodySlot.mid east) coordinate(#1linkOrig);
+  \draw (#1.north west) node[above right,draw,outer sep=0pt] (#1Name) {\objslotfont #1};
+
+  \foreach \bName/\bValue/\bVersion in {#2} {
+    \draw (next) \vboxbody{base west}{\bName}{}{\bValue}{\bVersion}
+          (\bName.base east) +(right:0.5cm) coordinate(next);
+  }
+  %\draw (#1.mid east) +(-0.25,0) coordinate(#1linkOrig) coordinate(prev);
+  \draw (#1linkOrig) coordinate(prev);
+  \foreach \bName/\bValue/\bVersion in {#2} {
+    \draw[->] (prev) -- (\bName.base west);
+    \draw (\bName linkOrig) coordinate(prev);
+  }
+  \draw (prev) node[anchor=mid west,inner sep=0pt] {\objslotfont null};
+}
+
+
+\newcommand{\drawTxStruct}[4]{
+  \def\jc@readMap{#3}
+  \def\jc@writeMap{#4}
+  \draw
+  (0,0) node[draw,outer sep=0pt] (prev) {\objslotfont #1}
+  (prev.south west)  coordinate(txUpLeft)
+  (prev.south west)  node[below right] (prev) {\objslotfont number: #2}
+  (prev.south west)  node[below right] (prev) {\objslotfont readMap:}
+  \ifx.#3 \emptyMap\else\drawReadMap{#3}\fi
+  (next)             node[below right] (prev) {\objslotfont writeMap:}
+  \ifx.#4 \emptyMap\else\drawWriteMap{#4}\fi
+  [reset cm=true]
+  (\pgf@pathmaxx,\pgf@pathminy) +(0.15,0) coordinate(txLowRight);
+  % draw the enclosing rectangle
+  \draw (txUpLeft) rectangle (txLowRight);
+%  % link nodes
+%  \ifx.#4 \relax\else\linkWriteMap{#4}\fi
+}
+
+\newcommand{\dotsNode}{
+  (nextMapEntry) node[below right] (dotsNode) {\objslotfont ...} 
+  (dotsNode.south west) +(0,-0.15) coordinate(nextMapEntry)
+}
+
+\newcommand{\emptyMap}{
+  (prev.base east) node[anchor=base west] (dotsNode) {\objslotfont\itshape empty} 
+  (prev.south west) coordinate(next)
+}
+
+\newcommand{\writeMapValueWidth}{\widthof{\objslotfont 999}}
+\newcommand{\writeMapValue}[1]{\makebox[\writeMapValueWidth][c]{\objslotfont #1}}
+
+\newcommand{\drawWriteMap}[1]{
+  (prev.base east) +(0.2,0.15) coordinate(nextMapEntry)
+  (nextMapEntry) +(-0.05,0.05) coordinate(mapUpLeft)
+  \foreach \boxName/\bodyName/\bodyValue in {#1} {
+    \expandafter\ifx\boxName*
+    \dotsNode
+    \else
+    (nextMapEntry) +(0.6,0) node[draw,below right,outer sep=0pt,inner xsep=3pt] (\bodyName) {\writeMapValue{\bodyValue}}
+    (nextMapEntry) rectangle (\bodyName.south west)
+    (\bodyName.west) +(-0.3,0) coordinate(\boxName)
+    (\bodyName.south east) +(0.05,-0.05) coordinate(mapLowRight)
+    (nextMapEntry |- \bodyName.south east) +(0,-0.15) coordinate(nextMapEntry)
+    \fi
+  }
+  (mapUpLeft) rectangle (mapLowRight)
+}
+
+\newcommand{\linkWriteMap}[1]{
+  \foreach \boxName/\bodyName/\bodyValue in {#1} {
+    \expandafter\ifx\boxName* \empty\else
+    \draw[->] (\bodyName source) -- (\bodyName.base west);
+    \fi
+  }
+}
+
+\newcommand{\drawReadMap}[1]{
+  (prev.base east) +(0.2,0.15) coordinate(nextMapEntry)
+  (nextMapEntry) +(-0.05,0.05) coordinate(mapUpLeft)
+  \foreach \boxName/\bodyName in {#1} {
+    \expandafter\ifx\boxName*
+    \dotsNode
+    \else
+    (nextMapEntry) rectangle +(0.6,-0.3)
+    (nextMapEntry) +(0.3,-0.15) coordinate(\boxName)
+    (nextMapEntry) rectangle +(1.2,-0.3)
+    (nextMapEntry) +(0.9,-0.15) coordinate(\bodyName)
+
+    (nextMapEntry) +(1.25,-0.35) coordinate(mapLowRight)
+    (nextMapEntry) +(0,-0.4)  coordinate(nextMapEntry)
+    \fi
+  }
+  (mapUpLeft) rectangle (mapLowRight)
+  (prev.base west |- mapLowRight) coordinate(next)
+}

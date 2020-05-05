@@ -12,6 +12,7 @@
 \usepackage[pdfborder={0 0 0}]{hyperref}
 \newcommand{\URL}[1]{\href{https://#1}{\textcolor{cyan}{\texttt{#1}}}}
 
+\usepackage{tablefootnote}
 
 % adjusts page layout
 \usepackage[margin=25mm]{geometry}
@@ -61,6 +62,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \usepackage{tikz}
+% Shamelessly stolen to draw VBox diagrams
+\usepackage{threads}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Tables
@@ -205,16 +208,27 @@ made available to the students and staff of the University.
 
 \thispagestyle{empty}
 
-{ \begin{tabular}{L{0.3\linewidth} L{0.7\linewidth}}
+\vspace{-0.2in}
+
+\begin{table}[h]
+  \begin{tabular}{L{0.3\linewidth} L{0.7\linewidth}}
     \textbf{Candidate number:} & \candidatenumber                      \\
     \textbf{Project Title:}           & \disstitle \\
     \textbf{Examination:}        & Computer Science Tripos -- Part II, July 2020  \\
-    \textbf{Word Count:}         & \wordcount  \\
-    \textbf{Lines of code:} & \loc \\
+    \textbf{Word Count:}         & \wordcount\tablefootnote{According to
+                                   the command provided with the
+                                   dissertation template: \\ \indent \indent
+    \indent \texttt{detex
+    diss.tex | tr -cd '0-9A-Za-z
+    \char`\\ n' | wc -w}} \\
+    \textbf{Lines of code:} & \loc\tablefootnote{Calculated using
+                              Github's contributions feature.} \\
     \textbf{Project Originator:} & \originator \\
     \textbf{Supervisor:} & \supervisor \\
   \end{tabular}
-}
+\end{table}
+
+\vspace{-0.4in}
 
 \section*{Original Aims of the Project}
 
@@ -227,6 +241,8 @@ benchmark produced --- as there is no existing realistic benchmark in
 the language chosen for this project. The qualitative results of the
 evaluation can be found in the evaluation chapter of this
 dissertation.
+
+\vspace{-0.1in}
 
 \section*{Work Completed}
 
@@ -242,6 +258,8 @@ Transactional Memory and Go's concurrency primitives and memory
 model. Implementation of an application as large as the STMBench7
 benchmark also required knowledge and use of software engineering
 patterns and practices.
+
+\vspace{-0.1in}
 
 \section*{Special Difficulties}
 
@@ -308,11 +326,11 @@ programmers. Finally, we can see how STM tackles these problems.
 In the last few decades, and especially in the period of 1986--2003,
 single-core processor performance grew exponentially at such a rate
 that hardware became obsolete within one or two years. This was mostly
-thanks to two ``laws'' of processor design: Moore's law
-\cite{MooreLaw} and Dennard scaling \cite{DennardScaling}. Moore's law
-is the observation that, due to the production of smaller transistors,
-the number of transistors in a processor doubles every two
-years. Although the prediction in the 1965 paper was a doubling in
+thanks to two ``laws'' of processor design: Moore's
+law~\cite{MooreLaw} and Dennard scaling~\cite{DennardScaling}. Moore's
+law is the observation that, due to the production of smaller
+transistors, the number of transistors in a processor doubles every
+two years. Although the prediction in the 1965 paper was a doubling in
 transistor count every year, this was revised in 1975 to a doubling
 every two years. Dennard scaling states that as transistors get
 smaller and consume less power, their power density stays constant, so
@@ -332,10 +350,10 @@ main ways:
   
 \item More complex hardware design was also used to build
   out-of-order, superscalar processors. These processors could exploit
-  Instruction Level Parallelism (ILP) \cite[Chapter~3]{CompArchBook}
+  Instruction Level Parallelism (ILP)~\cite[Chapter~3]{CompArchBook}
   latent in most programs.
 \end{itemize}
-This processor performance ``free lunch'' \cite{FreeLunchIsOver} ended
+This processor performance ``free lunch''~\cite{FreeLunchIsOver} ended
 in the early 2000s, when Dennard scaling ceased to hold and the
 low-hanging fruit of processor design had been harvested:
 
@@ -355,8 +373,8 @@ low-hanging fruit of processor design had been harvested:
 \end{itemize}
 As the limits of single-core performance and latent ILP were reached,
 processor designers shifted their focus to multicore processors, which
-are capable of exploiting Thread Level Parallelism (TLP)
-\cite[Chapter~5]{CompArchBook}. As opposed to ILP, which can be
+are capable of exploiting Thread Level Parallelism
+(TLP)~\cite[Chapter~5]{CompArchBook}. As opposed to ILP, which can be
 automatically exploited by the processor in most applications, TLP
 usually requires the program to be written using multiple
 threads. This means that the burden is now on programmers to write
@@ -376,7 +394,7 @@ programs, but it does not scale to large applications. Problems such
 as deadlock and priority inversion are hard to detect and debug in
 large programs. The lack of a semantic link between a mutex lock and
 the resource it protects leads to what Herlihy and Shavit call
-``synchronisation by convention'' \cite[Chapter
+``synchronisation by convention''~\cite[Chapter
 18]{ArtMultiprocessorProgramming}.
 
 \begin{Listing}[hbtp]
@@ -411,8 +429,8 @@ used for condition synchronisation using the \javaMethod{wait},
 memory, other concurrency models have been created. The most
 widespread involve message passing between strongly isolated processes
 --- so called because, unlike threads, they do not share
-memory. Hoare's Communicating Sequential Processes \cite{CSP} and
-Milner's Calculus of Communicating Systems \cite{CCS} are two formal
+memory. Hoare's Communicating Sequential Processes~\cite{CSP} and
+Milner's Calculus of Communicating Systems~\cite{CCS} are two formal
 models that use this idea. These models are mostly employed by
 functional programming languages such as Erlang, which allow no shared
 memory and in which all data is immutable. Concurrent programs in
@@ -421,7 +439,7 @@ perform as well as programs written in more ``traditional'' languages
 such as Java and C\texttt{++}.
 
 \paragraph{Transactional memory.} Yet another approach, and the focus
-of this dissertation, is Transactional Memory (TM) \cite{TMBook}. When
+of this dissertation, is Transactional Memory (TM)~\cite{TMBook}. When
 using transactional memory, a programmer organises their code into
 transactions, similar to the transactions in the transactional model
 of databases. It is then up to the underlying TM implementation to
@@ -456,10 +474,10 @@ processor, and are offered as an Instruction Set Architecture (ISA)
 extension. Because they operate at such a low level, HTMs are often
 very efficient, but the size of transactions is limited by the size of
 cache available and the implementation cost is extremely
-high. Software Transactional Memories (STM) \cite{STM} are much more
+high. Software Transactional Memories (STM)~\cite{STM} are much more
 flexible, but implementing them efficiently can be a
 challenge. Efficiency concerns with regards to STMs are so great that
-they have been called a ``research toy'' \cite{Toy}.
+they have been called a ``research toy''~\cite{Toy}.
 
 \section{Golang}
 \label{sec:intro:golang}
@@ -481,16 +499,6 @@ my goals when choosing to use Go for this project was to eventually
 contribute to this environment, and make it easy for software
 engineers to build server applications using STM.
 
-% Go, sometimes referred to as Golang, is a language whose development
-% started in 2007 in Google, and which was released in 2012. Go was
-% designed with a focus on writing concurrent programs. Its
-% concurrency model is based on Hoare's CSP: multiple goroutines, Go's
-% version of coroutines, communicate through channels, which can be
-% blocking or buffered. Go also supports shared memory, as well as
-% locks and single-word atomic memory operations. The peculiarities of
-% Go and their implications on my project are discussed in Section
-% \ref{sec:prep:research}.
-
 \section{The STM chosen}
 \label{sec:stm-chosen}
 
@@ -502,19 +510,20 @@ adoption costs and little to no support of commonly used libraries. As
 one of my goals in choosing my project was to one day develop an STM
 that could be adopted in industry, it made sense to base my project on
 an existing STM with a real-world application. Such an STM is the Java
-Versioned Software Transactional Memory (JVSTM) \cite{jvstm}, which
-has been used in the FenixEDU project
-\cite{carvalho2008versioned}. Because my STM uses the same version
-box--based algorithm \cite{VBox} but is implemented in Go instead of
-Java, I have decided to name it Go Versioned Software Transactional
-Memory (GVSTM).
+Versioned Software Transactional Memory
+(JVSTM)\footnote{\URL{web.ist.utl.pt/joao.cachopo/jvstm/}}, which has
+been used in the FenixEDU
+project~\cite{carvalho2008versioned}. Because my STM uses the same
+version box--based algorithm~\cite{VBox} but is implemented in Go
+instead of Java, I have decided to name it Go Versioned Software
+Transactional Memory (GVSTM).
 
 \section{Evaluation and benchmarking}
 \label{sec:eval-benchm}
 
 Performance is a crucial factor in the evaluation of STMs. Although it
 has been shown that STMs can largely outperform sequential code in
-multicore computers \cite{MoreThanToy}, it falls to each STM
+multicore computers~\cite{MoreThanToy}, it falls to each STM
 implementation to show that it is sufficiently efficient to be
 adopted. With that goal in mind, it is important for the success of
 this project to demonstrate how the STM implemented performs when
@@ -522,7 +531,7 @@ compared to alternatives, even if it does not outperform them.
 
 With that in mind, I have chosen to include in the evaluation of my
 STM the results of the STMBench7 benchmark, which can be regarded as a
-stress test of STMs \cite{STMBench7}. STMBench7 aims to be a realistic
+stress test of STMs~\cite{STMBench7}. STMBench7 aims to be a realistic
 benchmark, meaning that instead of performing a long series of simple
 transactions, such as reading and writing a handful of variables, it
 performs elaborate operations on complex data structures. A
@@ -638,16 +647,22 @@ durability is not usually a concern.
 
 \paragraph{Opacity.} In practice, modern transactional memories are
 expected to make stronger guarantees than those provided by the ACID
-properties. Opacity \cite{Opacity} is widely regarded as the
+properties. Opacity~\cite{Opacity} is widely regarded as the
 correctness property to be achieved by TMs, and is stronger than
 properties imported from the area of database concurrency control such
-as serialisability and strict serialisability
-\cite{Serialisability}. In summary, opacity strengthens the isolation
-condition so that no transaction, including aborted and in-flight
-transactions, can access inconsistent states. The GVSTM provides
-opacity by only allowing each transaction to access the state
-consistent with its read timestamp --- see Section
+as serialisability and strict
+serialisability~\cite{Serialisability}. In summary, opacity
+strengthens the isolation condition so that no transaction, including
+aborted and in-flight transactions, can access inconsistent
+states. The GVSTM provides opacity by only allowing each transaction
+to access the state consistent with its read timestamp --- see Section
 \ref{sec:impl:vers-data-struct}.
+
+\paragraph{Serialisation order.} Although not sufficient, the property
+of strict serialisability gives rise to a useful construct: the
+serialisation order of transactions. This is the sequential order in
+which transactions appear to occur. It is common to say, for example,
+that transaction $A$ is serialised after transaction $B$.
 
 \paragraph{Reading and writing transactional variables.} In the
 general case, a transactional memory could provide the properties
@@ -700,9 +715,9 @@ func atomicMove(queueOne, queueTwo Q) {
 
 \paragraph{Performance.} One of the principal concerns of STM
 designers is performance. Depending on the algorithm used, it may be
-necessary to keep large read- and write-sets (see section
-\ref{sec:impl:read-sets-write}) or perform complex conflict detection
-operations, which may introduce significant overheads. For software
+necessary to keep large read- and write-sets or perform complex
+conflict detection operations, which may introduce significant
+overheads (see Section \ref{sec:impl:diff-meth-deal}). For software
 engineers to choose to adopt an STM it must demonstrate that its
 performance is at least comparable to that of other solutions, in
 addition to simplifying the programming model used. Performance may
@@ -876,7 +891,7 @@ func main() {
   \mycaption{\goType{error} and \goFunc{panic}.}{In this case failure
     to create the file is sufficiently unexpected that we want the
     program to terminate.}
-  \label{lst:interfaceTypes}
+  \label{lst:errorPanic}
 \end{Listing}
 
 \subsection{Goroutines}
@@ -914,7 +929,7 @@ storage can be used to keep any bookkeeping necessary by the
 transaction. As an example, the JVSTM uses Java's
 \javaClass{ThreadLocal}'s to keep the read- and write-sets necessary
 to validate and commit read-write transactions --- see Section
-\ref{sec:impl:read-sets-write}.
+\ref{sec:algorithm-overview}.
 
 As mentioned in Section \ref{sec:prep:goroutines}, goroutines are much
 more light-weight than Java's threads, and do not support thread-local
@@ -984,9 +999,10 @@ Emacs.  \todo{I should run go lint on the codebase.}
 
 \paragraph{Versions and licenses.} I wrote my project using Go version
 1.12. My implementation of the GVSTM is based on the original
-description of the algorithm \cite{cachopo2007phd}. My implementation
+description of the algorithm~\cite{cachopo2007phd}. My implementation
 of STMBench7 is based on the Java source code of the benchmark,
-version 1.2, licensed under \todo{figure out what that license is...}
+version 1.2, licensed under
+BSD-3-Clause\footnote{\URL{opensource.org/licenses/BSD-3-Clause}}.
 
 
 
@@ -996,312 +1012,975 @@ version 1.2, licensed under \todo{figure out what that license is...}
 
 \chapter{Implementation}
 
-In this chapter I will describe the implementation of both the GVSTM
-and STMBench7, as well as the data structures and algorithms
-involved. At the end of the chapter I include an overview of the
-repository, for the interested reader to use as reference.
+I begin this chapter by giving an overview of some concepts that are
+central to the understanding of STMs regardless of the language and
+algorithm used (Section \ref{sec:stm-concepts}). I then describe the
+steps taken to design a general approach to STM implementation in Go
+(Section \ref{sec:design-decisions}), and how this is based on the
+preliminary research summarised in Section
+\ref{sec:prep:research}. The main implementation tasks of the project,
+the GVSTM and STMBench7 are discussed in sections \ref{sec:impl:gvstm}
+and \ref{sec:impl:stmbench7}, respectively. At the end of the chapter
+I include an overview of the repository for the interested reader to
+use as reference (Section \ref{sec:impl:repository-overview}).
 
-\section{Design decisions}
-\label{sec:design-decisions}
+\section{STM concepts}
+\label{sec:stm-concepts}
 
-\subsection{Typing}
-\label{sec:typing}
-
-Because Go does not offer generic programming, a user of the library
-must use type casting when reading values from a transactional
-variable. The return type of loads and the argument type of stores is
-the empty interface.
-
-\subsection{The \goFunc{Atomic} function}
-\label{sec:atomic-function}
-
-All reads and writes of transactional variables that occur inside a
-call to Atomic appear to occur atomically and in isolation from other
-transactions.
-
-\subsection{Explicit transaction objects}
-\label{sec:expl-trans-objects}
-
-Because there are no thread-locals, transaction context must be passed
-around explicitly.
-
-\subsection{The ``transactional'' property}
-\label{sec:cont-trans-prop}
-
-Because transaction objects need to be passed around explicitly, and
-because they are required to access a TVar, we can define
-transactional functions inductively as:
-
-\begin{enumerate}
-\item A function is transactional if it reads or writes a TVAr.
-\item A function is transactional if it calls a transactional function
-  without surrounding said call in a call to Atomic.
-\end{enumerate}
-
-\subsection{Aborts using panics}
-\label{sec:aborts-using-panics}
-
-The user should not be aware of the inner workings of the STM, or
-necessarily care that there is an internal distinction between
-read-only and read-write transactions. The only way to immediately
-abort a transaction without the user programming for it is to use a
-panic.
-
-\subsection{The interface pattern in STMBench7}
-\label{sec:interf-patt-stmb}
-
-I want object semantics pretty much everywhere in STMBench7, so the
-interface pattern is extensively used, even if some interfaces have
-only one implementation.
-
-\section{GVSTM}
-\label{sec:impl:gvstm}
-
-\subsection{Versioned data structures}
-\label{sec:impl:vers-data-struct}
-
-VBoxes, VBodies. Basically a linked list and a wrapper. Lets
-transactions read into the past.
+The concepts discussed here are applicable to the domain of STMs in
+general, and will be used in later sections when describing the
+implementation of the GVSTM.
 
 \subsection{Conflicts}
 \label{sec:impl:conflicts}
 
-All types of memory conflicts. Which ones do we actually care about
---- RAW.
+Two transactions are said to semantically conflict if the result of
+their concurrent execution is not the same as the result of some
+sequential execution of the two transactions. In practice this implies
+that the execution times of the two transactions overlap and that the
+operations of one of the transactions affect the outcome of the
+operations of the other. Because in this project I focus only on
+operations on transactional variables, this can only occur if one
+transaction writes to a transactional variable from which the other
+transaction reads --- a Read-After-Write conflict on a transactional
+variable.
+
+It is worth pointing out that this is an overly conservative
+approximation to conflict detection --- it detects physical conflict,
+not semantic conflict. The difference between the two can be shown
+with a simple example: consider two transactions, $T$ and $U$, that
+both access the same shared counter, which initially holds the value
+$0$. Transaction $T$ checks if the value of the counter is less than
+$100$ and, if yes, performs some computation. Transaction $U$
+increments the value of the counter, in this case from $0$ to $1$. If
+$T$ and $U$ are executed concurrently there may be physical conflict,
+because $T$ reads from a transactional variable to which $U$ writes,
+but there is no semantic conflict because the value of the counter is
+still less than $100$, and so the outcome of $T$ does not change.
+
+\subsection{Aborts and retries}
+\label{sec:aborts-using-panics}
+
+When two transactions conflict it is often necessary for one
+transaction to retry; that is, discard its progress so far and restart
+its computation from scratch. This is necessary to maintain the
+correctness properties of the STM. This behaviour should not be
+exposed to users --- the STM should automatically retry when it
+detects a conflict.
+
+It may also be desirable to expose to the user the option to
+explicitly retry. An example of where this could be used is when a
+transaction reads a value inconsistent with the domain logic --- which
+would only occur if the STM did not provide opacity. In this case, the
+transaction is already destined to retry, so it may be desirable to do
+so early so as not to waste computation.
+
+In a similar vein, it may be desirable to allow the user to explicitly
+abort a transaction and discard any progress made so far. This can be
+useful in scenarios where some writes to transactional variables are
+made before a condition is reached which makes the transaction
+obsolete. An example of where this could be used is described in
+Section \todo{ref}.
+
+Not all STMs provide explicit abort and retry operations to
+users. STMBench7, for example, does not assume that such operations
+exist. Because I do not have a meaningful way to evaluate these
+features I decided to not include them in my GVSTM implementation for
+now, but they are a possible extension discussed in Section
+\ref{sec:impl:extensions}.
+
+\subsection{Lifetime of a transaction}
+\label{sec:lifetime-transaction}
+
+The lifetime of a transaction can be divided into four main stages:
+
+\begin{description}
+\item[Start] The transaction is created, along with its arguments and any
+  bookkeeping necessary.
+\item[Execution] The transaction performs its computation, possibly including reads
+  and writes to transactional variables.
+\item[Validation] A check is made to guarantee that the transaction does not cause a
+  conflict. If the transaction fails the check it typically
+  retries. If the transaction passes the check it commits.
+\item[Commit] The transaction is now successfully completed. The work to be done
+  here depends on the algorithm used --- this is explained in Section
+  \ref{sec:impl:diff-meth-deal}.
+\end{description}
 
 \subsection{Different methods of dealing with conflicts}
 \label{sec:impl:diff-meth-deal}
 
-Eager vs lazy conflict detection, eager vs lazy update.
+A simple taxonomy of STMs can be drawn based on when validation is
+performed and when writes to transactional variables are installed:
 
-JVSTM is lazy-lazy.
+\paragraph{Deferred update.} The results of writes to transactional
+variables are only installed at commit-time. That is, when a
+transaction attempts to write to a transactional variable it does not
+alter the value stored in the transactional variable
+immediately. Instead, it stores the value to be written in a
+shadow-copy private to the transaction. When the transaction
+terminates successfully it installs the values stored in its
+shadow-copies in the transactional variables, at which point the new
+values become globally visible. This increases the amount of work that
+needs to be done at commit-time, but makes aborting or retrying a
+transaction very simple: the new values are private so they can simply
+be discarded.
 
-\note{Would it be worth mentioning here some results about the
-  performance of different approaches?}
+\paragraph{Direct update.} A write to a transactional variable
+immediately installs the new value in the globally accessible
+transactional variable. At commit-time there is no work necessary to
+install the new values, but aborting or retrying is more
+complex. Because the new values are already installed it is necessary
+to roll-back the changes made. When one transaction aborts, all other
+transactions that have read the results of a write made by the
+aborting transaction must also abort. This causes cascading aborts,
+which waste large amounts of computation.
 
-\subsection{Read-sets and write-sets to detect conflict}
-\label{sec:impl:read-sets-write}
+\paragraph{Lazy conflict detection.} Validation is only done after the
+execution stage of the transaction has completed, immediately before
+the commit stage. This has the potential to waste a lot of
+computation, because transactions that are already destined to abort
+will terminate before detecting this. On the other hand, the overhead
+of individual reads of transactional variables can be much lower when
+compared to eager conflict detection.
 
-Describe the validation algorithm of the JVSTM.
+\paragraph{Eager conflict detection.} Validation is done at every read
+of a transactional variable. This often implies that a direct update
+scheme is used. If, for example, one transaction were to read a
+transactional variable to which a concurrently executing transaction
+had already written, the reading transaction would automatically
+abort. This has the potential of unnecessarily aborting transactions:
+in the previous example, aborting would only be necessary if the
+writing transaction ended up committing.
 
-\note{Is this a good place to mention memory allocation costs? The
-  JVSTM allocates the memory for all VBodies at commit time. The GVSTM
-  does it when the first write to a VBox is made. This shortens commit
-  time, which is the concurrency bottleneck.}
+\section{STM interface in Go}
+\label{sec:design-decisions}
+
+In this section I explain the steps taken when designing a general STM
+interface in Go, based on the features of the language described in
+Section \ref{sec:prep:research}. In Listing \ref{lst:STMInterface} I
+show my suggested interface of an STM in Go.
+
+\subsection{Typing}
+\label{sec:typing}
+
+An STM should be able to synchronise access to variables of arbitrary
+types. As mentioned in Section \ref{sec:prep:polymorphism}, Go does
+not support generic programming, but supports polymorphism in the form
+of interfaces. Because all types must be supported, the functions to
+store to or load from a transactional variable must receive or return,
+respectively, a value of the empty interface type.
+
+Because the load of a transactional variable returns an
+\goType{interface\string{\string}} type, the user must cast the
+returned value to the expected type. This removes the opportunity for
+static type checking of values in transactional variables, and hence
+increases the burden on the programmer to guarantee that values loaded
+from transactional variables have the correct type. Sadly, this is for
+the time being the only solution that supports arbitrary values to be
+stored in transactional variables.
+
+\subsection{Transaction representation}
+\label{sec:expl-trans-objects}
+
+All loads and stores of transactional variables should be associated
+with an existing transaction. This means that any part of a program
+that attempts to perform a load or store of a transactional variable
+should have access to the representation of the transaction with which
+the operation is associated. In the JVSTM, for example, this is
+achieved by storing the object representing the transaction in
+thread-local storage. Loads and stores of a transactional variable
+then access this thread-local storage to make any bookkeeping
+necessary. However, as mentioned is Section
+\ref{sec:prep:thread-locals}, Go does not support thread-local
+storage, so an alternative approach is required.
+
+Because there is no thread-local storage, all the variables accessible
+inside a function must be either global variables or values passed as
+arguments to the function. The bookkeeping data of transactions should
+not be globally accessible, because that would allow users to
+accidentally violate the isolation guarantees provided by the STM. Not
+only that, it would be extremely difficult for the load and store
+operations of a transactional variable to determine with which
+transaction object the operation should be associated. This means that
+in order for a function to be able to perform a load or store of a
+transactional variable it must receive a transaction object as an
+argument, and pass it to the functions that perform the transactional
+variable operations.
+
+The inner structure of transaction objects is likely to be specific to
+each STM implementation, and to assume that only code internal to the
+STM implementation is able to access it. For these reasons, users of
+an STM should not be able to create or modify transaction objects.
+
+\subsection{``Transactional'' functions}
+\label{sec:trans-funct}
+
+The fact that functions operating on transactional variables must
+receive a transaction object as an argument leads to the existence of
+a ``contagious'' property of functions. This is the property of all
+functions that must receive a transaction object as an argument,
+called transactional functions, and can be defined recursively:
+
+\begin{enumerate}
+\item A function is transactional if it operates on a transactional
+  variable.
+\item A function is transactional if it calls a transactional function
+  without surrounding said call in a call to Atomic.
+\end{enumerate}
+
+The existence of this property has some subtle advantages. Firstly,
+the inclusion of a transaction object in the parameters of a function
+clearly marks the function as transactional. For this reason, I
+adopted the convention of making the first argument of any
+transactional function the transaction object, to make it more visible
+that the function is transactional. Secondly, because creation of
+transaction objects is restricted to the STM implementation, a user
+cannot perform operations on transactional variables without having a
+valid transaction object created by the STM code.
+
+\paragraph{The STM interface.} The arguments presented so far in this
+chapter lead to the definition of the STM interface:
+
+\begin{itemize}
+\item The interface must provide an abstraction of a transactional
+  variable.
+\item The interface must provide an abstraction of a transaction,
+  which must be capable of loading from and storing to a transactional
+  variable.
+\end{itemize}
+
+\begin{Listing}[hbtp]
+\begin{lstlisting}
+type TVar interface {}
+
+type Transaction interface {
+	Load(tVar TVar) interface{}
+	Store(tVar TVar, value interface{})
+}
+\end{lstlisting}
+
+  \mycaption{The STM interface.}{This represents the minimum
+    functionality that an STM should be able to provide in Go.}
+  \label{lst:STMInterface}
+\end{Listing}
+
+\subsection{``Atomic'' execution}
+\label{sec:atomic-function}
+
+In this dissertation, and indeed most of the literature on STMs, it is
+conventional to write of transactions occurring ``atomically''. This
+is somewhat of a misnomer, because the term is not used to entail only
+the atomicity property described in Section
+\ref{sec:prep:techn-requ}. Instead, atomic execution is taken to mean
+``execution according to all the correctness properties claimed by the
+STM in question''. In the case of the GVSTM, and hence throughout this
+dissertation, that property is opacity, as also described in Section
+\ref{sec:prep:techn-requ}.
+
+A user of an STM should be able to define and atomically run a
+transaction. According to the definition of transactional functions
+introduced in Section \ref{sec:trans-funct}, it makes sense to
+represent a transaction to be executed as a transactional
+function. Due to Go's treatment of functions as values, atomic
+execution can be achieved by passing a transactional function as an
+argument to some function \goFunc{Atomic}, which handles any necessary
+bookkeeping.
+
+I decided not to include this function in the STM interface because
+the characteristics of STMs can somewhat vary. In particular, the
+signature required by the \goFunc{Atomic} function will depend on the
+bookkeeping necessary: some STMs may, for example, require the
+\goFunc{Atomic} function to take as an argument whether the
+transaction to be executed is read-only or read-write.
+
+\section{GVSTM}
+\label{sec:impl:gvstm}
+
+In this section I describe the implementation of the GVSTM. Most
+aspects of the implementation are similar to those of the JVSTM, but I
+also describe the design work necessary to adapt the algorithm to make
+use of Go's features.
+
+\subsection{Versioned data structures}
+\label{sec:impl:vers-data-struct}
+
+The JVSTM uses multi-version data structures, called versioned boxes,
+to implement transactional variables~\cite{VBox}. A versioned box
+contains a history of the values installed in the transactional
+variable. That is, a sequence of version-value pairs, where the
+version is the logical timestamp at which the value was installed in
+the transactional variable. This logical timestamp is the
+serialisation order number of the transaction that stored the
+corresponding value.
+
+\paragraph{Semantics.} The key proposition of versioned boxes is that
+their operations semantically appear to occur at arbitrary logical
+timestamps:
+\begin{itemize}
+\item A load of a versioned box is made with an associated
+  read-timestamp and returns the most recent value at the given
+  timestamp. That is, it returns the most recent value that was not
+  installed after the given timestamp.
+\item The installation of a value in a versioned box is done with a
+  given commit-timestamp, and represents a semantic write of the given
+  value to the transactional variable at the given timestamp.
+\end{itemize}
+
+\paragraph{Implementation.} The semantics of versioned boxes are
+supported by a linked list of version-value pairs ordered in reverse
+version number order (newest first). The elements in the list are
+called versioned bodies. A version box is simply a wrapper for this
+linked list. A graphical representation of this structure is shown in
+Figure \ref{fig:box-and-bodies}.
+
+\begin{figure}[hb]
+  \centering
+  \begin{tikzpicture}
+    \drawVBox{B}{b1/2/87,b2/1/23,b3/0/0}
+  \end{tikzpicture}
+  \mycaption{The versioned box data structure.}{A load with version
+    number 0 to 22 will yield value 0. A load with version number 23
+    to 86 will yield value 1. A load with version number larger than
+    86 will yield value 2.}
+  \label{fig:box-and-bodies}
+\end{figure}
+A read of a versioned box traverses the list of bodies until it finds
+a version no greater than the timestamp given and returns the value
+associated with that timestamp. The installation of a value in a
+versioned box adds a new body to the list of bodies --- in the GVSTM
+the installation of a value in a versioned box is guaranteed to be
+made with a version number greater than all version numbers already
+present in the box, so this only requires adding the new body to the
+head of the list.
+
+\subsection{Algorithm overview}
+\label{sec:algorithm-overview}
+
+According to the taxonomy of STMs described in Section
+\ref{sec:impl:diff-meth-deal}, the GVSTM performs lazy validation and
+deferred updates. This means that the validation and the installation
+of new values are done only at commit-time. In order to do this, the
+GVSTM uses transaction objects to store the bookkeeping necessary,
+which are created and initialised when the transaction starts.
+
+\paragraph{Transaction objects.} Each transaction object maintains a
+read-timestamp, a read-set and a write-set:
+
+\begin{description}
+\item[Read-timestamp] \hfill\\
+  The read-timestamp is used to read from versioned boxes during the
+  execution of the transaction. When the transaction object is
+  created, the read-timestamp is read from a a global logical clock,
+  which counts all the transactions that have committed. This means
+  that the read-timestamp of every executing transaction is the
+  serialisation order number of the latest transaction to have
+  committed when the transaction started.
+\item[Read-set] \hfill\\
+  The read-set is a set of all the versioned boxes from which the
+  transaction has read. When the transaction object is created, the
+  set is empty.
+\item[Write-set] \hfill\\
+  The write-set of the transaction represents its set of shadow-copies
+  of transactional variables --- it is a map from versioned boxes to
+  the latest values the transaction has written to them. When the
+  transaction object is created, the map is empty.
+\end{description}
+The transaction objects are used when reading and writing to versioned
+boxes --- a read of a versioned box adds the box to the read-set; a
+write of a value to a versioned box associates the box-value pair in
+the write-set. At commit-time all the entries in the write-set are
+installed in the versioned boxes.
+
+\paragraph{Nesting.} A transactional function can call other
+transactional functions. In this scenario, the former is called the
+parent and the latter are called the children. A parent passes the
+transaction object it received as argument in all calls to its
+children. By induction, all descendants of a root transactional
+function, which is passed as an argument to the \goFunc{Atomic}
+function, operate on the same transaction object. This produces flat
+nesting: all descendants of a transactional function validate and
+commit with the root transaction. There are other nesting
+schemes~\cite{diegues2012review}, but they are much more complex and
+beyond the scope of this project.
+
+\subsection{Validation and commit algorithms}
+\label{sec:valid-comm-algor}
+
+Here I will describe the validation and commit algorithms used by the
+GVSTM, and how the commit algorithm was adapted from that of the JVSTM
+to reduce the commit-time bottleneck.
+
+\paragraph{Commit lock.} Attempting to validate a transaction
+concurrently with the installation of changes on transactional
+variables by another transaction is extremely complex. For this
+reason, the original implementation of the JVSTM~\cite{VBox} uses a
+global commit lock to serialise the validation and commit process:
+when a transaction terminates it acquires the lock, validates and
+commits, then releases the lock. Later work extended the JVSTM to have
+a lock-free commit algorithm~\cite{fernandes2011lock}. The
+implementation of this extension would make for an interesting Part II
+project on its own right, so I decided to implement the lock-based
+commit algorithm.
+
+\paragraph{Commit algorithm.} The commit algorithm of the GVSTM simply
+installs all the written values in the corresponding versioned
+boxes. At the start of the commit, a commit timestamp is calculated by
+adding one to the commit-timestamp of the latest committed
+transaction. The commit-timestamps of transactions dictate their
+serialisation order. Each value installed in a versioned box is
+installed with this commit-timestamp as its version number.
+
+\paragraph{Commit-time bottleneck reduction.} The commit algorithm is
+run sequentially, whilst transaction execution is run in
+parallel. According to Amdahl's law~\cite{Amdahl}, this makes the
+commit algorithm the sequential bottleneck of the GVSTM, especially as
+the number of transactions run in parallel increases. It is hence
+desirable to shorten this bottleneck as much as possible.
+
+As mentioned in Section \ref{sec:impl:vers-data-struct}, the
+installation of a value in a versioned box consists of adding a new
+body to the head of the list of bodies. The JVSTM declares the fields
+of a body \javaKeyword{final} and fills them in immediately before
+adding the body to the linked list. Java's memory model then
+guarantees that the initialisation of the fields of a body occurs
+before the addition of the body to the list. This prevents a race
+condition between a committing transaction and a reading transaction,
+which would cause the reading transaction to see an uninitialised
+body.
+
+Go does not have a construct with memory model semantics equivalent to
+Java's \javaKeyword{final} variables, so the GVSTM must use a
+synchronising memory operation when adding a body to a list of
+bodies. This also means that the bodies no longer have to be created
+at commit time. Instead, they are created and added to the write-set
+of a transaction when it first writes to a transactional
+variable. This shifts the overheads of allocating memory for the
+versioned bodies from the sequential commit-time algorithm to the
+parallel execution of concurrent transactions, reducing the length of
+the bottleneck of the algorithm.
+
+\paragraph{Validation algorithm.} The validation algorithm of the
+GVSTM determines if the validating transaction can be serialised
+directly after the last committed transaction. For this to be
+possible, the transaction must not conflict with any committed
+transaction. As described in Section \ref{sec:impl:conflicts}, a
+physical conflict occurs when a read and a write of a transactional
+variable occur in concurrent transactions. We can then analyse the two
+possible cases:
+
+\begin{description}
+\item[Read by a committed transaction, write by the validating transaction.] \hfill\\
+  This does not cause a conflict --- the write has not been installed
+  yet, so the reading transaction must have read an earlier
+  value. This is consistent with the serialisation order of commits:
+  the committed transaction is serialised before the validating
+  transaction.
+\item[Write by a committed transaction, read by the validating transaction.] \hfill\\
+  This may cause a physical conflict: because the validating
+  transaction is serialised after the committed transaction, it should
+  have read a value at least as recent as the committed
+  transaction. However, because the validating transaction reads using
+  its read-timestamp, it will only have read a value at least as
+  recent as the committed transaction if the commit occurred no later
+  than the read-timestamp of the validating transaction. If this is
+  not the case, the validating transaction has violated atomicity by
+  reading a stale value, and hence must abort.
+\end{description}
+The validation algorithm then only needs to check that, in every
+versioned box in the read-set of the validating transaction, there is
+no value installed later than the read-timestamp of the validating
+transaction. If there is, the transaction must abort. If there is not,
+the transaction may commit without causing conflict.
 
 \subsection{Read-only transactions}
 \label{sec:impl:read-only-trans}
 
-Only RAW conflicts are a problem. Because versioned data structures
-allow reads of past values, read-only transactions can always read
-consistent values, and hence never cause a conflict. This means that
-read-only transactions always validate by construction, and hence do
-not require the overheads of keeping read-sets and write-sets. This
-means that read transactions in the GVSTM are extremely lightweight,
-and pretty much always outperform locking approaches. This is always
-the case in read-write workloads, because read-only transactions using
-locks will often need to wait for a RW lock to be released by a
-writer. It is still to an extent the case in read-only workloads
-according to my results so far. I assume this is because the cost of
-creating an empty transaction object in local cache is less than that
-of acquiring a read-lock, which requires memory barriers.  \todo{Ref
-  some section of the evaluation that supports this.}
+The validation algorithm is necessary to ensure that transactions
+appear to occur atomically. In particular, the validation algorithm of
+the GVSTM checks if the transaction can appear to occur atomically at
+commit time. It is not necessary in the general case that transactions
+appear to occur at commit time --- but introducing this restriction
+keeps the validation and commit algorithms simple.
 
-\note{May be interesting to note that write-only transactions also
-  never fail to validate, but in practice are very rare.}
+An important observation is that, due to the use of versioned boxes,
+all reads by a transaction appear to occur at the same time --- the
+read-timestamp issued at the start of the transaction. A transaction
+that only performs reads of versioned boxes --- a read-only
+transaction --- is then by construction atomic, and can always be
+serialised at its read-timestamp. Because read-only transactions are
+always serialisable, there is no need for them to validate. Because
+read-only transactions do not write to transactional variables, the
+commit algorithm does nothing. As such, read-only transactions are
+allowed to bypass the validation and commit stages entirely while
+preserving the correctness of the STM. Because of this, the GVSTM
+handles read-only transactions differently:
 
-\subsection{Flat nesting}
-\label{sec:impl:flat-nesting}
+\begin{itemize}
+\item The transaction object does not contain a read-set, because
+  validation is unnecessary. This also removes the overhead of adding
+  the versioned box to the read-set when a transactional variable is
+  first read, so individual reads of versioned boxes are also more
+  efficient.
+\item The transaction object does not hold a write-set, because the
+  transaction makes no write operations.
+\item Read-only transactions cannot abort, because they are
+  serialisable by construction.
+\item Read-only transactions do not need to wait to acquire the commit
+  lock, so given otherwise equal conditions their performance is
+  independent of contention in the commit lock. This makes it easier
+  to provide guarantees on the latency of read-only transactions
+  regardless of the presence of inter-conflicting read-write
+  transactions.
+\end{itemize}
 
-Because nested transactions use the same transaction object we get
-flat nesting.
+\paragraph{Always start as a read-only transaction.} It is not
+desirable to require a user to distinguish read-only transactions. One
+reason for this is that it is not always possible to determine ahead
+of time if a transaction will be read-only. It may be, for example
+that a transaction will perform a write of a transactional variable if
+some condition holds, but this condition cannot be determined before
+the transaction starts. In these cases, the user would have to default
+to declaring the transaction as a read-write transaction and
+potentially miss out on the increased performance of read-only
+transactions. This approach is also more error prone: a mislabelling
+of a transaction may violate the invariants of the STM. For these
+reasons, the GVSTM attempts to execute all given transactions as
+read-only transactions. If the transaction attempts to perform a write
+operation it aborts and retries as a read-write transaction.
 
-\subsection{Garbage collection}
+\paragraph{Write in a read-only transaction.} Evidently, the behaviour
+just described should not be exposed to the user. When a read-only
+transaction attempts to write, control should return to the
+\goFunc{Atomic} function automatically. This is achieved by using a
+call of \goFunc{panic}.
+
+It is interesting to note that write-only transactions also never fail
+validation, because a set of writes can always be serialised after any
+set of transactions. In practice, however, write-only transactions are
+very uncommon, so not worth optimising.
+
+\subsection{Garbage collection of old versioned bodies}
 \label{sec:impl:garbage-collection}
 
-\todo{Change title to something that makes it explicit this isn't
-  general purpose GC. Something like GC of old versions.}
+As the reader may have noted, writing to versioned boxes increases the
+size of the linked list they store. This means that a program using
+the GVSTM will slowly run out of memory by filling it with old
+versioned bodies. This of course is not acceptable, so an algorithm to
+reclaim old bodies must be employed. This is by far the most complex
+aspect of the GVSTM implementation --- the original description of the
+algorithm for the JVSTM is six pages
+long~\cite[Section~4.4.7]{cachopo2007phd}.  However, due to the page
+limit of this dissertation I will have to limit my description to a
+short overview, and I will not be discussing all the race conditions
+that must be avoided by an implementation of the algorithm. The
+interested reader can either examine my implementation of the GVSTM or
+read the original description of the algorithm cited above.
 
-This is a requirement because versioned data structures keep a
-history. The history needs to be truncated or else the program runs
-out of memory.
+\paragraph{Active transaction records.} An active transaction record
+holds the commit-timestamp of a committed transaction and the set of
+versioned bodies created by the corresponding transaction. The record
+also holds a counter of currently executing transactions whose
+timestamp is equal to the timestamp of the record --- that is, all
+transactions that are semantically reading at the same point in time
+as the transaction corresponding to the record committed. When a
+transaction starts it increments the counter of the record
+corresponding to its read-timestamp. When a transaction terminates ---
+either through a commit or an abort/retry --- it decrements the
+counter.
+
+\paragraph{Linked list of records.} The GVSTM keeps a linked list of
+transaction records in reverse timestamp order. When a transaction
+commits, it must create a new active transaction record and add it to
+the head of the list. Read-only transactions do not need to do this,
+but they must increment and decrement counters appropriately.
+
+\paragraph{Cleaning bodies.} When all executing transactions have
+started after a particular timestamp, the bodies of the corresponding
+record can be cleaned. That is, the bodies stored in the record can be
+freed to be reclaimed by the OS. Both Java and Go are garbage
+collected, so in both cases this means simply removing the bodies from
+the corresponding lists --- the runtime garbage collector takes care
+of the rest. In practice, determining that all executing transactions
+have started after a certain timestamp while avoiding race conditions
+is rather complex --- again, the interested reader is welcome to read
+the original description of the algorithm.
+
+\paragraph{Timestamps.} In this section I have stated that transaction
+objects store a read-timestamp, but this is not entirely
+true. Instead, transactions store a reference to the corresponding
+active transaction record. This makes the read-timestamp accessible to
+the transaction object and facilitates the increment and decrement of
+counters. The timestamp of the latest committed transaction is
+acquired from the latest active transaction record in the list.
 
 \subsection{Extensions}
 \label{sec:impl:extensions}
 
 Here I discuss some extensions that could be made to the GVSTM. I did
 not implement these extensions partly because of the time restrictions
-on the project, and partly because STMBench7 does not leverage either
-of them, so I would not be able to meaningfully evaluate
-them. Nevertheless, these features increase the expressivity of STM
+on the project, and partly because STMBench7 does not leverage any of
+them, so I would not be able to meaningfully evaluate
+them. Nevertheless, these features increase the expressivity of an STM
 and could be implemented in future work.
 
-\paragraph{Abort and retry semantics.}
-\label{sec:impl:abort-retry-semant}
+\paragraph{Abort and retry semantics.} As mentioned in Section
+\ref{sec:impl:read-only-trans}, a call to \goFunc{panic} is used to
+abort a read-transaction and retry its execution as a read-write
+transaction. In this case, the call to \goFunc{panic} takes as an
+argument a value denoting an attempted write in a read-only
+transaction. Using the same principle, the \goFunc{panic} function
+could be used with other values to denote an explicit abort or retry
+by the user. This is a very simple addition: the only modifications
+required are a change in the atomic function to handle these values
+and the addition of functions \goFunc{Abort} and \goFunc{Retry}
+exposed to the user, which are wrappers for the calls of
+\goFunc{panic}. When preparing my project I had planned to implement
+this extension, but ultimately decided against it due to the lack of
+its use in STMBench7.
 
-\paragraph{Different nesting semantics.}
-\label{sec:impl:diff-nest-semant}
+\paragraph{Different nesting semantics.} As mentioned in Section
+\ref{sec:algorithm-overview}, the GVSTM presently only supports flat
+nesting. It could be an interesting Part II, or indeed Part III,
+project to implement one or more other nesting schemes.
 
-\paragraph{Side effects as monads.}
-\label{sec:impl:side-effects-as}
-
-The GVSTM only deals with access to transactional variables. If a
-transaction does other types of side effects, such as printing to a
-file or channel communication, those effects are not
-transactional. One way this could be changed would be to represent
-these effects as monads in the form of functions kept by the
-transaction object. On commit, each of these monads is executed.
-
-This solution only handles cases in which the transaction is producing
-output. Much more careful thinking is required in the case where the
-transaction consumes some input.
+\paragraph{Side effects as monads.} The GVSTM only handles accesses to
+transactional variables. If a transaction creates other types of side
+effects, such as printing to a file or channel communication, those
+effects are not transactional. One approach to changing this would be
+to represent these effects as monads, in the form of functions kept by
+the transaction object. On commit, each of these monads is
+executed. This solution only handles cases in which the transaction is
+producing output. Much more careful thinking is required in the case
+where the transaction consumes some input --- it could require, for
+example, the creation of transactional wrappers for channels and I/O
+streams, which could be made available as a library and could increase
+the appeal of the GVSTM to software engineers.
 
 \section{STMBench7}
 \label{sec:impl:stmbench7}
 
+In this section I describe my implementation of STMBench7, with a
+focus on its software engineering aspects.
+
 \subsection{Collection of results}
 \label{sec:impl:collection-results}
 
-To facilitate the collection of results, I changed the top level code
-to output benchmark results to a file. Each run of the benchmark
-creates a new file, whose name is the time at which the benchmark was
-run and which contains information about the parameters used.
+In my project proposal (Appendix \ref{cha:project-proposal}) I set out
+to produce an implementation of STMBench7 in the form of files to be
+used by Go's \texttt{test} tool. However, after examining the Java
+source code of the benchmark, I noted that it produced more detailed
+statistics than Go's \texttt{test} tool for this particular
+application. As such, I amended the format of my STMBench7
+implementation to be a single Go executable, which more closely
+resembles the design of the Java implementation.
+
+To make it easier to keep the results of a large number of benchmark
+runs, I made the benchmark output the generated statistics to a file
+as well as the console. Each run of the benchmark creates a new file,
+whose name is the time at which the benchmark was run and which
+contains information about the parameters used.
+
+To automate the collection of results of multiple runs of the
+benchmark I made my implementation accept the parameters of the
+benchmark as command line flags and created a shell script to collect
+all the results. This should not be done inside the Go executable to
+guarantee that runs of the benchmark are independent --- no need to
+garbage collect the results of previous runs, for example.
 
 \subsection{Data structures}
 \label{sec:impl:data-structures}
 
-Include a diagram of the data structure, similar to the one in the
-paper.
+The data structure used by the benchmark represents the data structure
+that would be used by a Computer Aided Design application. As
+mentioned in Section \ref{sec:prep:oop}, object semantics are often
+useful, and this is the case throughout STMBench7. In the rest of this
+section I will refer to elements of the STMBench7 implementation as
+objects, even though Go is not object oriented, to mean that the
+elements are represented using the interface pattern described in
+Section \ref{sec:prep:oop}.
+
+\paragraph{Design library.} The design library is a set of composite
+parts. Each composite part has one document and a graph of atomic
+parts. The atomic parts are connected by connection objects. The
+composite part also has a pointer to the root of the graph.
+
+\paragraph{Module.} A module has one manual and a tree of
+assemblies. Assemblies at the leaves of the tree are called base
+assemblies. There is a many-to-many relation between base assemblies
+and composite parts. All other assemblies are complex assemblies.
+
+All objects in the data structure also contain references to their
+parent, so for example it is possible to get the parent composite part
+of any given atomic part, and the root complex assembly of any
+assembly. It is worth noting that in STMBench7 only one module is
+used. A visual representation of the data structure is shown in Figure
+\ref{fig:stmbench7}.
+
+\begin{figure}[h]
+  \centering \includegraphics{stmbench7.pdf} \mycaption{The STMBench7
+    data structure.}{This diagram is copied from the original
+    STMBench7 paper~\cite{STMBench7}}.
+  \label{fig:stmbench7}
+\end{figure}
+
+\paragraph{Backend data structures.} The benchmark data structures
+are implemented using backend data structures. These backend data
+structures must be implemented using each synchronisation
+mechanism. To increase the fairness between synchronisation mechanisms
+I kept these implementations as similar as possible. This guarantees
+that any differences in performance are due to the synchronisation
+mechanism and not to the backend data structure
+implementation. Unfortunately the implementation used is rather
+inefficient. In Section \ref{sec:impl:possible-extensions} I discuss
+how this could be changed. It is worth drawing attention to two of the
+backend data structures:
+
+\begin{description}
+\item[ID pool] An ID pool is a finite set of unique identifiers for a
+  particular type of object. There is an ID pool for documents,
+  composite parts, etc. When an object is created it gets an ID from
+  the corresponding pool, if any are available. When an object is
+  destroyed it returns the ID to the pool.
+\item[Index] An index is a map of some key type to all the objects of
+  a particular type. Most indexes have IDs taken from an ID pool as
+  keys, but there is also an index of documents indexed by their
+  titles and index of composite parts indexed by build date. When an
+  object is created or destroyed it is added or removed, respectively,
+  from the corresponding index or indices.
+\end{description}
 
 \subsection{Operations}
 \label{sec:impl:operations}
 
-Operations can fail due to operation logic. This is not due to
-conflict or transactions aborting, but for example that ID pools are
-empty or that a random traversal reached a base assembly with no
-composite parts.This means that when looking at benchmark results it
-makes sense to look at the total throughput and not only at the
-throughput of successful operations.
+STMBench7 supports four types of operations on its data structure,
+which are summarised below. It is important to note that operations
+can fail due to operation logic. This is not due to transactions aborting
+or conflicting, but for example that ID pools are empty or that a
+random traversal reached a base assembly with no composite parts. This
+means that when looking at benchmark results it makes sense to look at
+the total throughput and not only at the throughput of successful
+operations.
 
-\paragraph{Long traversals.}
-\label{sec:impl:long-traversals}
+\paragraph{Long traversals.} Long traversals traverse very large
+numbers of objects. Most long traversals traverse the whole tree of
+assemblies, and some also traverse the graph of atomic parts of all
+composite parts. Most long traversals have a read-only and a
+read-write variant. Long read-write traversals only perform write
+operations on the attributes of atomic parts or documents --- they do
+not modify structure.
 
-\paragraph{Short traversals.}
-\label{sec:impl:short-traversals}
+\paragraph{Short traversals.} Short traversals reach much smaller
+numbers of objects --- instead of traversing the whole tree of
+assemblies, most short traversals take a random path from the root
+assembly to a composite part or from an atomic part to the root
+assembly. Most short traversals have read-only and read-write
+variants, and the write operations are only on attributes of objects.
 
-\paragraph{Short operations.}
-\label{sec:impl:short-operations}
+\paragraph{Short operations.} Short operations do not traverse the
+data structure at all. Instead, they use the indexes to find all
+objects of a type or find a random object. Again, most short
+operations have read-only and read-write variants, and the write
+operations are only on attributes of objects.
 
-\paragraph{Structure modification operations.}
-\label{sec:impl:struct-modif-oper}
+\paragraph{Structure modification operations.} Structure modifications
+make major changes to the data structure. They add and remove
+assemblies and composite parts and create and remove links between
+them. This conflicts with all traversals, so the inclusion of
+structure modifications in the benchmark workload severely impacts
+performance, as shown in Section \ref{sec:impl:impact-struct-modif}.
 
 \subsection{Design patterns}
 \label{sec:impl:design-patterns}
 
-\note{Whoever wrote the Java version of STMBench7 probably swallowed a
-  copy of the gang of four at some point. This makes the code a lot
-  harder to understand for someone who hasn't, but makes it easier to
-  extend and gives me a lot to write about in my dissertation. I could
-  use this as a demonstration of CS/SWE knowledge.}
+The Java implementation of STMBench7 makes extensive use of object
+oriented design patterns~\cite{GoF} to make it easy to extend the
+benchmark with additional synchronisation approaches, such as
+STMs. One of the challenges of porting the benchmark to Go was
+understanding these patterns and how they can be adapted to a
+non-object oriented language, and it was a good exercise of software
+engineering skills. The most prominent patterns are described below.
 
-\paragraph{Factory method.}
-There is a factory method for pretty much every type.
+\paragraph{Command.} Operation executors are an implementation of the
+command pattern. Operation executors handle any top-level
+synchronisation necessary before executing an operation. In the case
+of the coarse grained locking approach this consists of acquiring the
+global read-write lock, in a mode dependent of whether the operation
+to be executed is read-only or read-write. The operation executor for
+the medium grained locking approach is much more complex: a large
+number of locks must be acquired in a specific order, according to
+which operation is being executed. Writing this executor is rather
+error prone, as the slightest mistake is likely to cause deadlock or
+race conditions. The GVSTM operation executor, on the other hand,
+simply wraps the operation to be executed in a call to the
+\goFunc{Atomic} function.
 
-\paragraph{Abstract Factory.}
-There are three abstract factories:
+\paragraph{Factory method and abstract factory.} STMBench7 provides
+interfaces for all its benchmark and backend data structures, which are
+used throughout the benchmark. Each synchronisation mechanism provides
+its own implementations of these interfaces, along with the
+corresponding factory methods and abstract factories. This layer of
+abstraction makes it simple to, for example, change the implementation
+of the backend data structures without touching the rest of the
+codebase.
 
-\begin{description}
-\item[Design Objects] All the data structures described above. The
-  GVSTM implementation uses TVars, the locking based implementations
-  don't. The locking implementations are sequential, and locking is
-  handled by the executors. The exception to this is the complex
-  assembly implementation for MG locking, which requires acquiring
-  some locks.
-\item[Backend] This makes it easy to change the implementation of the
-  underlying sets and such. Link this to providing a library of
-  versioned data structures.
-\item[Executors] This is actually just one factory method, but I
-  turned it into a factory to be consistent with the others and with
-  the Java version.
-\end{description}
+\paragraph{Builder.} Builders are used to create and destroy the
+benchmark data structures while respecting the invariants of the
+benchmark. They encapsulate the addition and removal of objects from
+the corresponding indexes as well as the creation of other objects
+associated with the object being created, such as the document of a
+composite part and the children assemblies of a complex assembly.
 
-Bonus: the factories are singletons!
+\medskip
 
-\paragraph{Builder.}
-
-Builders are used to create and destroy the data structures, and
-encapsulate the indexing of the objects in their respective indexes
-and the creation of components, such as a document for composite
-parts, children assemblies for a complex assembly, etc.
-
-\paragraph{Executor.}
-
-Executors are somewhat like the command pattern I believe?
+These patterns make the addition of new synchronisation approaches to
+the benchmark simple: the new synchronisation approach must only
+provide implementations of the data structures, an operation executor
+and add its abstract factories to the main file. There is no need to
+change any of the benchmark logic, such as its operations and
+builders.
 
 \subsection{Testing}
 \label{sec:impl:testing}
 
-\paragraph{Invariant testing}
-\label{sec:impl:invariant-testing}
+As with any software engineering project, testing is important to
+guarantee that my implementations of both the GVSTM and the benchmark
+structures are correct. The original STMBench7 implementation included
+both invariant tests on its data structures and opacity tests. Here I
+explain my reasoning about what tests should be included in my
+implementation.
 
-Checking that some application level invariants on the data structures
-and indexes are maintained.
+\paragraph{Invariant tests.} The invariant tests of STMBench7 check
+that both the benchmark and backend data structures are in a
+consistent state. I implemented these tests as soon as I had
+implemented the factories and builders of the data structures, which
+proved to be useful: the tests helped me find a couple of bugs I had
+overlooked, and allowed me to fix them before beginning to implement
+the operations of the benchmark, which would have caused much more
+complex errors. I kept running these tests as I implemented the
+operations, which made it much more efficient for me to debug my code.
 
-These tests are actually useful: they helped me detect and fix a few
-bugs when I was implementing the operations, both in my backend data
-structure implementations and in some other places where I made silly
-mistakes (eg. not checking for null value before casting, using
-strings.HasSuffix instead of strings.HasPrefix).
+\paragraph{Opacity tests.} The opacity tests of STMBench7 check that
+the execution of the benchmark by an STM satisfies the opacity
+property described in Section \ref{sec:prep:techn-requ}. I did not
+include the opacity tests in my implementation for three reasons:
 
-\paragraph{Opacity testing}
-\label{sec:impl:opacity-testing}
-
-Checking that the parallel execution is equivalent to a sequential
-execution.
-
-This is essentially a property of the algorithm. Because I am using an
-existing algorithm, for which opacity has been demonstrated, running
-these tests would have little value.
-
-Running these tests also increases the iteration time of running the
-benchmark very significantly, because the multithreaded code needs to
-be rerun sequentially.
-
-Because the operations include randomness, this requires complicated
-thread-local random state. This would be a lot of additional work for
-little extra benefit, so I decided to spend my time on other
-things. Good software engineering practice, huh?
+\begin{description}
+\item[Opacity is an STM property] \hfill \\
+  The GVSTM algorithm is the same as that of the JVSTM, whose opacity
+  property has already been shown. As such, the opacity tests would
+  only tell me whether my implementation of the algorithm has bugs.
+\item[Bugs are caught by invariant tests] \hfill \\
+  Any bugs in the GVSTM implementation would cause large errors in any
+  application using it. These errors would then cause the invariant
+  tests to flag the error, so the opacity tests give me no new
+  information.
+\item[Heavy use of thread-local storage] \hfill \\
+  As described in Section \ref{sec:impl:operations}, the short
+  traversal operations make random traversals of the benchmark data
+  structure. Opacity tests rely on retracing a concurrent execution
+  serially, including the random parts. The Java implementation makes
+  use of thread-local storage to keep per-thread reproducible random
+  state in order to guarantee that the re-execution produces the same
+  results. However, as discussed in Section
+  \ref{sec:prep:thread-locals}, Go does not support thread-local
+  storage, so a solution to this problem would be extremely complex,
+  if at all possible.
+\end{description}
+In summary, the opacity tests would require a very substantial
+engineering effort for no tangible benefit to this project, so I
+decided not to implement them.
 
 \subsection{Extensions}
 \label{sec:impl:possible-extensions}
 
-\paragraph{Implementing all 45 operations.}
-DONE: implement all the operations, instead of just a subset.
+Here I discuss some extensions that could be made to my STMBench7
+implementation. Most of them focus on making the benchmark results
+more representative of real-world applications.
 
-\paragraph{Efficient backend data structures.}
+\paragraph{Implementing all 45 operations.} In my project proposal I
+set out to only implement a subset of the original 45 operations of
+STMBench7, and listed implementing all the operations as a possible
+extension. In my project I achieved this extension goal. Although
+implementing the benchmark as a whole was a much more ambitious goal
+than I had expected, the addition of the remaining operations by
+itself was reasonably simple thanks to the modular architecture of the
+benchmark.
 
-Make more efficient backend data structure implementations and see how
-the performance changes.
+\paragraph{Efficient backend data structures.} As mentioned in Section
+\ref{sec:impl:data-structures}, the implementations of the backend
+data structures using locking approaches and STM are similar to
+increase the fairness of the benchmark. The implementation in question
+is very inefficient, because the data structure must be copied on
+write to prevent concurrent access. A very valuable extension would be
+to provide more efficient implementations of the backend data
+structures. In the case of locking this would only involve removing
+the copying operations. In the case of the GVSTM this would involve
+the creation of complex versioned data structures such as sets and
+maps. The JVSTM provides this as part of a library. The data
+structures are based on persistent data
+structures~\cite{PurelyFunctional}. The creation of such a library to
+be distributed with the GVSTM would also make it much more appealing
+to software engineers.
 
-\paragraph{Command line interface.}
+\paragraph{Containerising.} One of the strongest appeals of STMs is
+that they scale much better than other approaches to large numbers of
+cores. During my project I was only able to collect benchmark results
+using my laptop, but it would be interesting to run the benchmark on
+server class machines. To make this easier, it would be useful to
+create an STMBench7 container to facilitate deployment on a cloud
+computing platform.
 
-Turn the benchmark into a proper CLI command, to make running it
-easier.
-
-\paragraph{Containerising.}
-Make a Docker container with the benchmark, to be run on an AWS
-instance with many more cores.
-
-\paragraph{Rewrite the benchmark to be fairer.}
-The method to create and register a complex assembly is unfair to
-STMs: if the ID pool for either complex or base assemblies is
-exhausted the method undoes all its work. This involves a lot of
-operations on backend structures. Some STM implementations, such as
-the GVSTM, could simply abort or retry when they detect such an error,
-which would be much more efficient.
+\paragraph{Rewrite the benchmark to be fairer.} The method to create
+and register a complex assembly is unfair to STMs: if the ID pool for
+either complex or base assemblies is exhausted the method undoes all
+its work. This involves a lot of operations on backend data
+structures. Some STM implementations, such as the GVSTM extended with
+abort and retry semantics (Section \ref{sec:impl:extensions}), could
+simply abort or retry when they detect such an error, which would be
+much more efficient.
 
 \section{Repository overview}
 \label{sec:impl:repository-overview}
+
+One of my goals when proposing my project was to use it as a step
+towards producing an open source library providing STM functionality
+in Go. In order to evaluate my STM implementation, my project also had
+to include the implementation of a benchmark for STMs. Because I
+wanted this benchmark to be usable by other STM implementations, I
+also needed to define an interface for STMs in Go. These three
+``modules''~\cite[Section~1.1]{SoftwareArchitecture} of the project
+should not necessarily be part of the same repository --- a software
+engineer may only want to use the GVSTM, or only care about the
+interface in order to produce their own STM implementation. For this
+reason, the three modules should not necessarily be kept together in
+the long run. In the scope of this project, however, it is much easier
+to handle code submission and dependency management in a single
+repository, so that is how I have structured my project. The
+repository holding the source code of my project has one directory for
+each of the modules. Their contents are summarised below.
+
+\paragraph{STM interface.} The STM interface defined in this project
+is reproduced fully in Listing \ref{lst:STMInterface}.
+
+\paragraph{GVSTM.} The implementation of the GVSTM is reasonably short
+--- less than 300 lines of code. That being said, the algorithm being
+implemented is rather complex, especially in avoiding race conditions
+in the garbage collection of old bodies. A good understanding of the
+algorithm is necessary to understand the implementation of the
+transaction objects and the active transaction records. The
+implementation of versioned boxes and versioned bodies is reasonably
+well contained.
+
+\paragraph{STMBench7.} The STMBench7 benchmark is by far the largest
+part of this project in terms of lines of code --- approximately
+5000. The structure of the benchmark is described in Section
+\ref{sec:impl:stmbench7}, and the organisation of source files is made
+to resemble that of the Java implementation. Future versions of my
+implementation may change this. Although I wrote all code submitted on
+my own, my STMBench7 implementation is mostly a translation of the
+Java version, with modifications to use the features of Go and the STM
+interface I defined.
 
 % \begin{figure}[h]
 %   \centering \includegraphics{cuarms.pdf} \mycaption{Test
@@ -1514,5 +2193,11 @@ Summary of the extensions described in the implementation chapter.
 \appendix
 
 \chapter{Project Proposal}
+\label{cha:project-proposal}
 
 \end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
