@@ -1,0 +1,7 @@
+#+title: Software Transactional Memory implementation and benchmarking in Go
+
+This repository holds the dissertation I produced for my undergraduate degree, and the artifacts used to create it.
+
+It is published here as it was submitted back in 2020 -- except for the more recent LaTeX compilation date. I do not intend to update this document, even though there are multiple things I have since learned to do better.
+
+For the code that was produced along with this dissertation, see the [[https://github.com/NotARealMike/gvstm][gvstm]] repository.
